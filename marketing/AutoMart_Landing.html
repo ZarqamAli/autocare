@@ -6,7 +6,7 @@
 <title>AutoMart — Pakistan's trust-first car marketplace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     theme: {
@@ -27,9 +27,10 @@
     }
   }
 </script>
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.tailwindcss.com" defer></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous" defer></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous" defer></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous" defer></script>
 <style>
   html, body { background:#05070d; color:#e8ecf5; font-family:'Inter',sans-serif; }
   body { overflow-x: hidden; }
@@ -1436,7 +1437,7 @@ const LISTINGS = [
   {
     id:1, title:'Toyota Corolla Altis Grande', year:2022, km:'34,000 km', city:'Karachi',
     price:'58,50,000', verified:true, ai:'fair', body:'Sedan', trans:'Auto', fuel:'Hybrid',
-    tag:'Editor\u2019s pick', img:'media/toyota-corolla.png', accent:'#dc2626',
+    tag:'Editor\u2019s pick', img:'https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/marketing-media/toyota-corolla.png', accent:'#dc2626',
   },
   {
     id:2, title:'BMW 5 Series 530d xDrive', year:2022, km:'42,000 km', city:'Lahore',
@@ -1446,12 +1447,12 @@ const LISTINGS = [
   {
     id:3, title:'Mercedes-AMG GT 63 S', year:2023, km:'12,500 km', city:'Islamabad',
     price:'7,90,00,000', verified:true, ai:'fair', body:'Coupe', trans:'Auto', fuel:'Petrol',
-    tag:'Performance', img:'media/mercedes-amg-gt.jpg', accent:'#22c55e',
+    tag:'Performance', img:'https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/marketing-media/mercedes-amg-gt.jpg', accent:'#22c55e',
   },
   {
     id:4, title:'Audi A6 C6 3.0 TDI', year:2010, km:'1,12,000 km', city:'Rawalpindi',
     price:'48,50,000', verified:false, ai:'below', body:'Sedan', trans:'Auto', fuel:'Diesel',
-    tag:'Classic', img:'media/audi-a6.png', accent:'#94a3b8',
+    tag:'Classic', img:'https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/marketing-media/audi-a6.png', accent:'#94a3b8',
   },
 ];
 function transformListing(l) {
@@ -1640,7 +1641,7 @@ function LoopVideo({ src, start = 0, end, className, style }) {
     <video
       ref={ref}
       src={src}
-      autoPlay muted playsInline preload="metadata"
+      autoPlay muted playsInline preload="none" data-lazyvideo="true"
       className={className}
       style={style}
     />

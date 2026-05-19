@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -123,7 +123,7 @@
 </nav>
 </div>
 
-<script src="/app/shared/icons.js"></script>
+<script src="/app/shared/icons.js" defer></script>
 <script type="module">
 import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
@@ -200,5 +200,6 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
   }).join('');
 })();
 </script>
+<script src="/app/shared/perf.js" defer></script>
 </body>
 </html>

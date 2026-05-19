@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -78,7 +78,7 @@
   <div style="text-align:center;padding:64px;color:var(--paper-400);">Loading…</div>
 </main>
 
-<script src="/app/shared/icons.js"></script>
+<script src="/app/shared/icons.js" defer></script>
 <script type="module">
 import { supabase } from '/app/shared/supabase.js';
 
@@ -203,5 +203,6 @@ import { supabase } from '/app/shared/supabase.js';
   if (typeof AMIcon !== 'undefined') AMIcon.mount(main);
 })();
 </script>
+<script src="/app/shared/perf.js" defer></script>
 </body>
 </html>

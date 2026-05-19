@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -128,7 +128,7 @@
   <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
 </nav>
 </div>
-<script src="/app/shared/icons.js"></script>
+<script src="/app/shared/icons.js" defer></script>
 <script type="module">
 import { supabase, getCurrentUser, initUnreadBadge } from '/app/shared/supabase.js';
 (async () => {
@@ -203,4 +203,5 @@ if (!favs?.length) {
 }
 })();
 </script>
+<script src="/app/shared/perf.js" defer></script>
 </body></html>

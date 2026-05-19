@@ -1,8 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Find a Workshop · AutoCare</title>
+<title>Find a Workshop Â· AutoCare</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app/shared/app.css">
 <link rel="stylesheet" href="/app/shared/inapp.css">
@@ -69,7 +69,7 @@
     <div class="appbar__spacer"></div>
     <span style="font-weight:700;font-size:var(--fs-sm);color:var(--ink-900);">Find a Workshop</span>
     <div class="appbar__spacer"></div>
-    <a class="btn btn--ghost btn--sm" href="javascript:history.back()">← Back</a>
+    <a class="btn btn--ghost btn--sm" href="javascript:history.back()">â† Back</a>
   </div>
 </header>
 
@@ -83,18 +83,18 @@
 
 <div class="nb-body">
   <aside class="nb-sidebar" id="nb-sidebar">
-    <div class="nb-empty">Loading workshops…</div>
+    <div class="nb-empty">Loading workshopsâ€¦</div>
   </aside>
   <div class="nb-map" style="position:relative;">
     <div id="map"></div>
-    <button class="nb-locate-btn" id="locate-btn" title="Center on my location">📍 My location</button>
+    <button class="nb-locate-btn" id="locate-btn" title="Center on my location">ðŸ“ My location</button>
   </div>
 </div>
 
 </div><!-- nb-shell -->
 
-<script src="/app/shared/icons.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/app/shared/icons.js" defer></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script type="module">
 import { supabase } from '/app/shared/supabase.js';
 
@@ -102,14 +102,14 @@ const LAHORE = [31.5204, 74.3587];
 let map, userMarker, userLatLng = null;
 let allMechanics = [], filtered = [], markers = [], activeIdx = null;
 
-// ── Init map ─────────────────────────────────────────────────────────────────
+// â”€â”€ Init map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 map = L.map('map').setView(LAHORE, 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  attribution: 'Â© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   maxZoom: 19,
 }).addTo(map);
 
-// ── Load data ─────────────────────────────────────────────────────────────────
+// â”€â”€ Load data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const { data: mechanics, error } = await supabase
   .from('mechanic_profiles')
   .select('id, workshop_name, address, city, phone, lat, lng, working_hours, workshop_photo_url')
@@ -136,7 +136,7 @@ if (error || !mechanics?.length) {
   renderFiltered();
 }
 
-// ── GPS ───────────────────────────────────────────────────────────────────────
+// â”€â”€ GPS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function requestGPS() {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(pos => {
@@ -154,14 +154,14 @@ function requestGPS() {
 document.getElementById('locate-btn').addEventListener('click', requestGPS);
 requestGPS(); // auto-request on load
 
-// ── Distance ──────────────────────────────────────────────────────────────────
+// â”€â”€ Distance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function haversineKm([lat1, lon1], [lat2, lon2]) {
   const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderFiltered() {
   const city = document.getElementById('city-filter').value;
   filtered = city ? allMechanics.filter(m => m.city === city) : [...allMechanics];
@@ -207,14 +207,14 @@ function renderMarkers() {
 
 function buildPopup(m) {
   const dist = (userLatLng && m.lat && m.lng)
-    ? `<div class="lf-popup__dist">📍 ${haversineKm(userLatLng, [m.lat, m.lng]).toFixed(1)} km away</div>` : '';
+    ? `<div class="lf-popup__dist">ðŸ“ ${haversineKm(userLatLng, [m.lat, m.lng]).toFixed(1)} km away</div>` : '';
   const dir = (m.lat && m.lng)
     ? `<a class="lf-popup__dir" href="https://www.google.com/maps/dir/?api=1&destination=${m.lat},${m.lng}" target="_blank" rel="noopener">Get Directions</a>` : '';
   return `<div class="lf-popup">
     <div class="lf-popup__name">${esc(m.workshop_name || 'Workshop')}</div>
-    <div class="lf-popup__row">📍 ${esc(m.address || '')}${m.city ? ', ' + esc(m.city) : ''}</div>
-    ${m.phone ? `<div class="lf-popup__row">📞 ${esc(m.phone)}</div>` : ''}
-    ${m.working_hours ? `<div class="lf-popup__hours">🕐 ${esc(m.working_hours)}</div>` : ''}
+    <div class="lf-popup__row">ðŸ“ ${esc(m.address || '')}${m.city ? ', ' + esc(m.city) : ''}</div>
+    ${m.phone ? `<div class="lf-popup__row">ðŸ“ž ${esc(m.phone)}</div>` : ''}
+    ${m.working_hours ? `<div class="lf-popup__hours">ðŸ• ${esc(m.working_hours)}</div>` : ''}
     ${dist}${dir}
   </div>`;
 }
@@ -232,8 +232,8 @@ function renderSidebar() {
     return `<div class="nb-item" data-i="${i}">
       <div class="nb-item__name">${esc(m.workshop_name || 'Workshop')}${noCoords}</div>
       <div class="nb-item__sub">${esc(m.address || '')}${m.city ? ', ' + esc(m.city) : ''}</div>
-      ${m.phone ? `<div class="nb-item__sub">📞 ${esc(m.phone)}</div>` : ''}
-      ${m.working_hours ? `<div class="nb-item__sub">🕐 ${esc(m.working_hours)}</div>` : ''}
+      ${m.phone ? `<div class="nb-item__sub">ðŸ“ž ${esc(m.phone)}</div>` : ''}
+      ${m.working_hours ? `<div class="nb-item__sub">ðŸ• ${esc(m.working_hours)}</div>` : ''}
       ${dist}
     </div>`;
   }).join('');
@@ -265,5 +265,6 @@ function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+<script src="/app/shared/perf.js" defer></script>
 </body>
 </html>

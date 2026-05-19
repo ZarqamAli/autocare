@@ -1,12 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Analytics · AutoMart Admin</title>
+<title>Analytics Â· AutoMart Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
 <link rel="stylesheet" href="/app/shared/mobile.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <style>
   body { background: #0b1020; color: #e2e8f0; }
   body::before { content: none; }
@@ -65,7 +65,7 @@
 <body>
 <div class="admin-shell">
   <aside class="admin-sidebar">
-    <div class="admin-sidebar__brand"><span class="brand__mark">A</span> AutoMart · Admin</div>
+    <div class="admin-sidebar__brand"><span class="brand__mark">A</span> AutoMart Â· Admin</div>
     <a href="verifications.html"><span data-icon="verified" data-size="16"></span>Verifications</a>
     <a href="#"><span data-icon="alert" data-size="16"></span>Reports</a>
     <a href="analytics.html" aria-current="page"><span data-icon="chart" data-size="16"></span>Analytics</a>
@@ -79,25 +79,25 @@
   </aside>
 
   <main class="admin-main">
-    <div class="mobile-head"><a href="verifications.html" style="color:#94a3b8;margin-right:10px;">← Back</a><strong>Analytics</strong></div>
+    <div class="mobile-head"><a href="verifications.html" style="color:#94a3b8;margin-right:10px;">â† Back</a><strong>Analytics</strong></div>
 
     <div class="admin-head">
-      <span class="pill-dark">📊 Live data</span>
+      <span class="pill-dark">ðŸ“Š Live data</span>
       <h1>Analytics</h1>
     </div>
 
     <div class="stats-grid" id="stats-grid">
-      <div class="stat-dark"><div class="stat-dark__lbl">Registered vehicles</div><div class="stat-dark__val" id="s-vehicles">—</div></div>
-      <div class="stat-dark"><div class="stat-dark__lbl">Approved workshops</div><div class="stat-dark__val" id="s-workshops">—</div></div>
-      <div class="stat-dark"><div class="stat-dark__lbl">Service logs</div><div class="stat-dark__val" id="s-logs">—</div></div>
-      <div class="stat-dark"><div class="stat-dark__lbl">Active listings</div><div class="stat-dark__val" id="s-listings">—</div></div>
-      <div class="stat-dark"><div class="stat-dark__lbl">Deals closed</div><div class="stat-dark__val" id="s-sold">—</div></div>
-      <div class="stat-dark"><div class="stat-dark__lbl">Stolen reports</div><div class="stat-dark__val" id="s-stolen" style="color:#fca5a5;">—</div><div class="stat-dark__sub">active</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Registered vehicles</div><div class="stat-dark__val" id="s-vehicles">â€”</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Approved workshops</div><div class="stat-dark__val" id="s-workshops">â€”</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Service logs</div><div class="stat-dark__val" id="s-logs">â€”</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Active listings</div><div class="stat-dark__val" id="s-listings">â€”</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Deals closed</div><div class="stat-dark__val" id="s-sold">â€”</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Stolen reports</div><div class="stat-dark__val" id="s-stolen" style="color:#fca5a5;">â€”</div><div class="stat-dark__sub">active</div></div>
     </div>
 
     <div class="grid-2">
       <div class="panel-dark">
-        <h3>Service logs · last 6 months</h3>
+        <h3>Service logs Â· last 6 months</h3>
         <div class="chart-wrap">
           <canvas id="chart-logs"></canvas>
         </div>
@@ -106,14 +106,14 @@
         <h3>Workshop leaderboard</h3>
         <table class="lb-table">
           <thead><tr><th>#</th><th>Workshop</th><th style="text-align:right;">Logs</th></tr></thead>
-          <tbody id="lb-body"><tr><td colspan="3" style="color:#64748b;text-align:center;padding:20px;">Loading…</td></tr></tbody>
+          <tbody id="lb-body"><tr><td colspan="3" style="color:#64748b;text-align:center;padding:20px;">Loadingâ€¦</td></tr></tbody>
         </table>
       </div>
     </div>
   </main>
 </div>
 
-<script src="/app/shared/icons.js"></script>
+<script src="/app/shared/icons.js" defer></script>
 <script type="module">
 import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
@@ -128,7 +128,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
   const { data: _ac } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
   if (!_ac?.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
 
-  // ── Stat cards ─────────────────────────────────────────────
+  // â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [
     { count: cVehicles },
     { count: cWorkshops },
@@ -152,7 +152,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
   document.getElementById('s-sold').textContent      = (cSold      ?? 0).toLocaleString();
   document.getElementById('s-stolen').textContent    = (cStolen    ?? 0).toLocaleString();
 
-  // ── Monthly chart ──────────────────────────────────────────
+  // â”€â”€ Monthly chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Build last 6 month labels
   const months = [];
   const now = new Date();
@@ -197,7 +197,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
     }
   });
 
-  // ── Workshop leaderboard ───────────────────────────────────
+  // â”€â”€ Workshop leaderboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { data: allLogs } = await supabase
     .from('service_logs')
     .select('mechanic_id')
@@ -221,12 +221,13 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
       const m = mechMap[id] || {};
       return `<tr>
         <td class="lb-rank ${rankColors[i]}">#${i + 1}</td>
-        <td><div class="lb-name">${m.workshop_name || 'Unknown'}</div><div class="lb-city">${m.city || '—'}</div></td>
+        <td><div class="lb-name">${m.workshop_name || 'Unknown'}</div><div class="lb-city">${m.city || 'â€”'}</div></td>
         <td class="lb-count">${cnt}</td>
       </tr>`;
     }).join('');
   }
 })();
 </script>
+<script src="/app/shared/perf.js" defer></script>
 </body>
 </html>
