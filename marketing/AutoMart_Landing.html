@@ -27,8 +27,8 @@
     }
   }
 </script>
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
   html, body { background:#05070d; color:#e8ecf5; font-family:'Inter',sans-serif; }
@@ -992,7 +992,7 @@ function Hero() {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         autoPlay
       />
       <div className="hero-grade"/>
@@ -1463,7 +1463,9 @@ function transformListing(l) {
     city: l.city || '', price: pkr >= 100000 ? (pkr/100000).toFixed(1)+'L' : pkr.toLocaleString('en-PK'),
     verified: false, ai: 'fair', body: l.body_type || 'Sedan',
     trans: l.transmission || 'Auto', fuel: l.fuel_type || 'Petrol',
-    tag: null, img: l.primary_photo_url || null, accent: '#2563eb',
+    tag: null, img: l.primary_photo_url
+      ? (l.primary_photo_url.startsWith('http') ? l.primary_photo_url : `https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/listings/${l.primary_photo_url}`)
+      : null, accent: '#2563eb',
   };
 }
 function FeaturedListings() {
@@ -1515,9 +1517,10 @@ function ListingCard({l}) {
       {/* IMAGE */}
       <div className="relative aspect-[4/3] overflow-hidden bg-ink-900">
         <img
-          src={l.img}
+          src={l.img || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'}
           alt={l.title}
           loading="lazy"
+          onError={e => { e.target.style.display='none'; }}
           style={{objectPosition: l.objectPosition || 'center'}}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-[1.06]"
         />
