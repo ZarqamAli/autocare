@@ -7,6 +7,8 @@ node_modules/
 supabase/.temp/
 .claude/
 .vscode/
-marketing/media/*.mp4
+marketing/media/why-bmw.mp4
+marketing/media/price-insight.mp4
+marketing/media/sell-cta.mp4
 marketing/*.mp4
 marketing/uploads/
