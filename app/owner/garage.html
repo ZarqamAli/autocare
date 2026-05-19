@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Garage · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .garage { max-width: 960px; margin: 0 auto; padding: 28px 20px 96px; }
+  .garage-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+  .garage-head h1 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.025em; }
+  .garage-head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+
+  .vgrid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+  .vcard {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl);
+    overflow: hidden; transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+    position: relative;
+  }
+  .vcard:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .vcard__photo {
+    height: 160px; background: linear-gradient(135deg, var(--paper-100), var(--paper-150));
+    position: relative; overflow: hidden;
+  }
+  .vcard__photo img { width: 100%; height: 100%; object-fit: cover; }
+  .vcard__photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--paper-300); }
+  .vcard__stolen {
+    position: absolute; top: 10px; left: 10px;
+    background: #dc2626; color: #fff;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 6px; text-transform: uppercase;
+  }
+  .vcard__score {
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    padding: 4px 9px; border-radius: 8px;
+  }
+  .score--good  { background: #dcfce7; color: #15803d; }
+  .score--ok    { background: #fef9c3; color: #92400e; }
+  .score--bad   { background: #fee2e2; color: #dc2626; }
+  .score--none  { background: var(--paper-100); color: var(--paper-500); font-size: 10px; }
+
+  .vcard__body { padding: 16px; }
+  .vcard__title { font-size: var(--fs-lg); font-weight: 700; color: var(--ink-900); margin-bottom: 4px; }
+  .vcard__meta { font-size: var(--fs-xs); color: var(--paper-500); display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .vcard__meta span { display: flex; align-items: center; gap: 4px; }
+  .vcard__reg { font-family: var(--font-mono); font-size: 11px; color: var(--paper-600); background: var(--paper-100); padding: 2px 7px; border-radius: 5px; }
+  .vcard__service { font-size: 11px; color: var(--paper-500); margin-bottom: 14px; }
+  .vcard__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .empty-state {
+    text-align: center; padding: 72px 24px;
+    background: var(--paper-0); border: 1.5px dashed var(--paper-200);
+    border-radius: var(--r-2xl);
+  }
+  .empty-state__icon { width: 72px; height: 72px; border-radius: 50%; background: var(--paper-100); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--paper-400); }
+  .empty-state h2 { font-size: var(--fs-2xl); color: var(--ink-900); margin-bottom: 10px; }
+  .empty-state p { color: var(--paper-500); font-size: var(--fs-sm); margin-bottom: 24px; max-width: 340px; margin-inline: auto; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/owner/dashboard.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoCare</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--primary btn--sm" href="/app/owner/add-vehicle.html">
+      <span data-icon="plus" data-size="14"></span> Add Vehicle
+    </a>
+    <a href="/app/seller/account.html" class="avatar" style="margin-left:8px;" aria-label="Account">G</a>
+  </div>
+</header>
+
+<main class="garage">
+  <div class="garage-head am-rise">
+    <h1>My <em>Garage</em></h1>
+    <a class="btn btn--primary" href="/app/owner/add-vehicle.html">
+      <span data-icon="plus" data-size="16"></span> Add Vehicle
+    </a>
+  </div>
+
+  <div id="garage-content">
+    <div style="text-align:center;padding:48px;color:var(--paper-400);">Loading…</div>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html" aria-current="page"><span data-icon="home" data-size="20"></span>Garage</a>
+  <a href="/app/owner/add-vehicle.html"><span data-icon="plus" data-size="20"></span>Add Car</a>
+  <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  if (!user) { window.location.href = '/app/login.html'; return; }
+
+  const { data: profile } = await supabase.from('profiles').select('display_name, primary_role, is_admin').eq('id', user.id).maybeSingle();
+  if (profile?.primary_role !== 'owner' && profile?.primary_role !== 'seller' && !profile?.is_admin) { window.location.href = '/app/signup.html'; return; }
+
+  // Update avatar initials
+  const initials = (profile?.display_name || 'O').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.querySelector('.avatar').textContent = initials;
+
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('*, health_scores(*), service_logs(logged_at, service_types)')
+    .eq('owner_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const content = document.getElementById('garage-content');
+
+  if (!vehicles?.length) {
+    content.innerHTML = `
+      <div class="empty-state am-rise">
+        <div class="empty-state__icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/>
+            <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+            <path d="M7 7l2-4h6l2 4"/>
+          </svg>
+        </div>
+        <h2>Your garage is empty</h2>
+        <p>Add your first vehicle to get a QR code sticker and start tracking service history.</p>
+        <a class="btn btn--primary btn--lg" href="/app/owner/add-vehicle.html">
+          <span data-icon="plus" data-size="16"></span> Add your first car
+        </a>
+      </div>`;
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(content);
+    return;
+  }
+
+  function scoreClass(score) {
+    if (score === null || score === undefined) return 'score--none';
+    if (score >= 70) return 'score--good';
+    if (score >= 40) return 'score--ok';
+    return 'score--bad';
+  }
+  function scoreLabel(score) {
+    if (score === null || score === undefined) return 'No history yet';
+    return score + '/100';
+  }
+  function lastService(logs) {
+    if (!logs?.length) return 'No service records';
+    const latest = logs.reduce((a, b) => new Date(a.logged_at) > new Date(b.logged_at) ? a : b);
+    const d = new Date(latest.logged_at);
+    return 'Last service: ' + d.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  async function getPhotoUrl(v) {
+    if (!v.photo_url) return null;
+    if (v.photo_url.startsWith('http')) return v.photo_url;
+    const { data } = await supabase.storage.from('vehicle-photos').createSignedUrl(v.photo_url, 3600);
+    return data?.signedUrl || null;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'vgrid';
+
+  for (const v of vehicles) {
+    const hs = v.health_scores?.[0] || null;
+    const score = hs?.score ?? null;
+    const photoUrl = await getPhotoUrl(v);
+
+    const card = document.createElement('div');
+    card.className = 'vcard am-rise';
+    card.innerHTML = `
+      <div class="vcard__photo">
+        ${photoUrl
+          ? `<img src="${photoUrl}" alt="${v.make} ${v.model}" loading="lazy">`
+          : `<div class="vcard__photo-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/><path d="M7 7l2-4h6l2 4"/></svg></div>`
+        }
+        ${v.is_stolen ? '<span class="vcard__stolen">⚠ Stolen</span>' : ''}
+        <span class="vcard__score ${scoreClass(score)}">${scoreLabel(score)}</span>
+      </div>
+      <div class="vcard__body">
+        <div class="vcard__title">${v.year} ${v.make} ${v.model}${v.variant ? ' ' + v.variant : ''}</div>
+        <div class="vcard__meta">
+          <span>${v.color || '—'}</span>
+          ${v.registration_number ? `<span class="vcard__reg">${v.registration_number}</span>` : ''}
+        </div>
+        <div class="vcard__service">${lastService(v.service_logs)}</div>
+        <div class="vcard__actions">
+          ${v.qr_code_uuid ? `<a class="btn btn--ghost btn--sm" href="/app/service-passport.html?vehicle=${v.qr_code_uuid}"><span data-icon="doc" data-size="14"></span> Passport</a>` : ''}
+          ${!v.is_stolen
+            ? `<button class="btn btn--sm" style="color:#dc2626;border-color:#fecaca;" data-stolen="${v.id}">Report Stolen</button>`
+            : `<button class="btn btn--sm" style="color:#15803d;border-color:#86efac;" data-recover="${v.id}">Mark Recovered</button>`
+          }
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  }
+
+  content.innerHTML = '';
+  content.appendChild(grid);
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(content);
+
+  content.querySelectorAll('[data-stolen]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Report this vehicle as stolen? This will be visible on the public service passport.')) return;
+      btn.disabled = true; btn.textContent = 'Reporting…';
+      await supabase.from('vehicles').update({ is_stolen: true, stolen_reported_at: new Date().toISOString() }).eq('id', btn.dataset.stolen);
+      window.location.reload();
+    });
+  });
+
+  content.querySelectorAll('[data-recover]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Mark this vehicle as recovered? This will remove the stolen flag from the public service passport.')) return;
+      btn.disabled = true; btn.textContent = 'Updating…';
+      await supabase.from('vehicles').update({ is_stolen: false, stolen_reported_at: null }).eq('id', btn.dataset.recover);
+      window.location.reload();
+    });
+  });
+})();
+</script>
+</body>
+</html>

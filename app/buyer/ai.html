@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AI Search · AutoMart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .ai-page { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; }
+  .ai-hero h1 { font-size: clamp(32px, 4.4vw, 56px); letter-spacing:-0.025em; line-height:1.05; }
+  .ai-hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .ai-hero p { color: var(--paper-500); font-size: var(--fs-lg); margin-top: 12px; max-width: 560px; }
+  .ai-input {
+    margin-top: 28px; padding: 16px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-lg); position: relative;
+  }
+  .ai-input::before {
+    content:''; position:absolute; inset:-1px; border-radius:inherit; padding:1px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(37,99,235,0.4), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+  .ai-input textarea {
+    width: 100%; border: none; resize: none; font: inherit; font-size: var(--fs-lg);
+    color: var(--ink-900); padding: 4px; min-height: 60px; outline: none; background: transparent;
+  }
+  .ai-input__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+  .pill-light {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: var(--r-pill);
+    background: var(--paper-75); color: var(--paper-700); font-size: var(--fs-xs); font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  .pill-light:hover { border-color: var(--paper-150); }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .think-card {
+    margin-top: 32px; padding: 20px;
+    background: linear-gradient(180deg, #f5f3ff, #fff);
+    border: 1px solid #e0e7ff; border-radius: var(--r-lg);
+  }
+  .think-row { display: flex; gap: 12px; padding: 8px 0; font-size: var(--fs-sm); color: var(--paper-700); align-items: start; }
+  .think-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-600); margin-top: 8px; flex-shrink: 0; }
+  .think-row .dot::after { content: none; }
+  .results { margin-top: 32px; display: flex; flex-direction: column; gap: 14px; }
+  .ai-result {
+    display: grid; grid-template-columns: 1fr; gap: 14px; padding: 14px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    transition: box-shadow var(--dur) var(--ease);
+  }
+  @media (min-width: 720px) { .ai-result { grid-template-columns: 200px 1fr auto; align-items: center; } }
+  .ai-result:hover { box-shadow: var(--shadow-md); }
+  .ai-result .imgslot { aspect-ratio: 4/3; }
+  .ai-result__rank {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--brand-700); font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .ai-result__why {
+    font-size: var(--fs-sm); color: var(--paper-700); line-height: 1.5;
+    background: var(--brand-50); padding: 8px 12px; border-radius: 8px; margin-top: 8px;
+    border-left: 3px solid var(--brand-600);
+  }
+</style></head>
+<body>
+<div class="app-shell with-tabbar">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/buyer/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link" href="/app/buyer/index.html">Browse</a>
+      <a class="appbar__link appbar__link--active" href="/app/buyer/ai.html">AI Search</a>
+      <a class="appbar__link" href="/app/buyer/saved.html">Saved</a>
+    </nav>
+    <div class="appbar__right">
+      <a class="iconbtn" href="/app/chat/index.html"><span data-icon="chat" data-size="18"></span><span class="iconbtn__badge">3</span></a>
+      <a href="/app/buyer/account.html" class="avatar">A</a>
+    </div>
+  </div>
+</header>
+
+<main class="ai-page">
+  <div class="ai-hero am-rise">
+    <span class="kicker">AI Search · beta</span>
+    <h1 style="margin-top:10px;">Describe the car<br>you're <em>actually</em> looking for.</h1>
+    <p>Skip filters. Just type — "a reliable automatic sedan under 30 lakh in Lahore that won't kill me on petrol" — and we'll rank what fits.</p>
+  </div>
+
+  <div class="ai-input am-rise" data-d="2">
+    <textarea placeholder="Try: automatic Honda or Toyota sedan, 2019 or newer, under 35 lakh, low mileage, in Lahore">automatic sedan under 30 lakh in Lahore, low mileage, fuel efficient, ideally Toyota or Honda</textarea>
+    <div class="ai-input__row">
+      <div class="row gap-2">
+        <button class="pill-light" type="button"><span data-icon="pin" data-size="12"></span>Lahore</button>
+        <button class="pill-light" type="button"><span data-icon="rupee" data-size="12"></span>Under 30L</button>
+        <button class="pill-light" type="button"><span data-icon="cog" data-size="12"></span>Automatic</button>
+      </div>
+      <button class="btn btn--primary"><span data-icon="sparkle" data-size="16"></span>Find matches</button>
+    </div>
+  </div>
+
+  <div class="suggestions am-rise" data-d="3">
+    <span style="font-size:var(--fs-xs); color:var(--paper-500); font-weight:600; align-self:center;">TRY:</span>
+    <button class="pill-light">Family SUV under 80L</button>
+    <button class="pill-light">First car for student in Karachi</button>
+    <button class="pill-light">Hybrid with low mileage</button>
+    <button class="pill-light">Manual hatchback under 25L</button>
+  </div>
+
+  <div class="think-card am-rise" data-d="4" style="display:none;"></div>
+
+  <div class="row gap-2 mt-8" id="results-header" style="justify-content: space-between; display:none;">
+    <h3 style="font-size:var(--fs-xl);">Matches <span id="results-count" style="font-family:var(--font-mono); color:var(--paper-500); font-size: var(--fs-sm);"></span></h3>
+  </div>
+
+  <div class="results" style="margin-top:16px;"></div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/buyer/index.html"><span data-icon="home" data-size="20"></span>Browse</a>
+  <a href="/app/buyer/ai.html" aria-current="page"><span data-icon="sparkle" data-size="20"></span>AI</a>
+  <a href="/app/chat/index.html" style="position:relative;"><span data-icon="chat" data-size="20"></span>Chats<span class="tabbar__badge">3</span></a>
+  <a href="/app/buyer/saved.html"><span data-icon="heart" data-size="20"></span>Saved</a>
+  <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  const { data: _rc } = await supabase.from('profiles').select('primary_role,is_admin').eq('id', session.user.id).maybeSingle();
+  if (_rc && _rc.primary_role !== 'buyer' && !_rc.is_admin) { window.location.replace('/app/owner/dashboard.html'); return; }
+  document.body.style.visibility = '';
+
+function formatL(minor) {
+  const pkr = minor/100;
+  if (pkr>=10000000) return (pkr/10000000).toFixed(2)+' Cr';
+  return (pkr/100000).toFixed(1)+' L';
+}
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); }
+initUnreadBadge('.iconbtn__badge');
+
+const textarea = document.querySelector('.ai-input textarea');
+const findBtn = document.querySelector('.ai-input .btn--primary');
+const thinkCard = document.querySelector('.think-card');
+const resultsDiv = document.querySelector('.results');
+const suggestionsDiv = document.querySelector('.suggestions');
+
+let conversationHistory = [];
+
+// Suggestion chips populate textarea
+suggestionsDiv.querySelectorAll('.pill-light').forEach(btn => {
+  btn.addEventListener('click', () => { textarea.value = btn.textContent.trim(); textarea.focus(); });
+});
+
+findBtn.addEventListener('click', runSearch);
+textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runSearch(); });
+
+async function runSearch() {
+  const q = textarea.value.trim();
+  if (!q) return;
+
+  findBtn.disabled = true;
+  findBtn.innerHTML = '<span data-icon="sparkle" data-size="16"></span>Searching…';
+  thinkCard.innerHTML = '<div class="row gap-2" style="margin-bottom:8px;"><span data-icon="sparkle" data-size="16" style="color:#6366f1"></span><span style="font-weight:700;color:#1e1b4b;">Thinking…</span></div><div style="height:4px;background:linear-gradient(90deg,#6366f1,#2563eb);border-radius:999px;animation:am-pulse 1s infinite;"></div>';
+  resultsDiv.innerHTML = '';
+
+  conversationHistory.push({ role: 'user', text: q });
+
+  const { data, error } = await supabase.functions.invoke('gemini-ai-search', {
+    body: { query: q, conversationHistory }
+  });
+
+  findBtn.disabled = false;
+  findBtn.innerHTML = '<span data-icon="sparkle" data-size="16"></span>Find matches';
+
+  if (error || !data) {
+    thinkCard.innerHTML = '<p style="color:var(--bad-600);">Search failed. Please try again.</p>';
+    return;
+  }
+
+  conversationHistory.push({ role: 'assistant', text: JSON.stringify(data.filters || {}) });
+
+  // Show think card with real filters
+  const filters = data.filters || {};
+  const filterRows = Object.entries(filters).map(([k,v]) =>
+    `<div class="think-row"><span class="dot"></span><div><strong>${k}:</strong> ${Array.isArray(v)?v.join(', '):v}</div></div>`
+  ).join('');
+  thinkCard.style.display = '';
+  thinkCard.innerHTML = `<div class="row gap-2" style="margin-bottom:8px;"><span data-icon="sparkle" data-size="16" style="color:#6366f1"></span><span style="font-weight:700;color:#1e1b4b;">How AutoMart understood your search</span></div>${filterRows||'<div class="think-row"><span class="dot"></span><div>Searching all active listings…</div></div>'}${data.summary ? `<div style="margin-top:12px;padding:10px 12px;background:#ede9fe;border-radius:8px;font-size:var(--fs-sm);color:#4c1d95;">${data.summary}</div>` : ''}`;
+
+  // Render results
+  const results = data.listings || [];
+  document.getElementById('results-header').style.display = '';
+  if (!results.length) {
+    document.getElementById('results-count').textContent = '· no matches';
+    resultsDiv.innerHTML = '<p style="color:var(--paper-500);text-align:center;padding:32px;">No matches found. Try broadening your search.</p>';
+    return;
+  }
+  document.getElementById('results-count').textContent = `· ${results.length} found`;
+
+  document.getElementById('results-count').textContent = `· ${results.length} found`;
+
+  resultsDiv.innerHTML = results.map((r, i) => {
+    const rank = i+1;
+    const l = r;
+    return `<a class="ai-result am-rise" href="/app/listing/detail.html?id=${l.id}">
+      <div class="imgslot">${l.primary_photo_url ? `<img src="${l.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div class="imgslot__car"></div>'}<span class="imgslot__label">${l.make} ${l.model} · ${l.year}</span></div>
+      <div>
+        <div class="ai-result__rank"><span data-icon="sparkle" data-size="12"></span>#${rank}${rank===1?' · Best fit':''}</div>
+        <div style="font-weight:700;font-size:var(--fs-md);color:var(--ink-900);">${l.year} ${l.make} ${l.model}${l.variant?' '+l.variant:''}</div>
+        <div style="display:flex;gap:10px;color:var(--paper-500);font-size:var(--fs-xs);margin-top:4px;"><span>${(l.mileage||0).toLocaleString()} km</span>·<span>${l.city||''}</span></div>
+        ${l.match_reason ? `<div class="ai-result__why">${l.match_reason}</div>` : ''}
+      </div>
+      <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--ink-900);white-space:nowrap;">${formatL(l.price_minor)}</div>
+    </a>`;
+  }).join('');
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(resultsDiv);
+}
+})();
+</script>
+</body></html>

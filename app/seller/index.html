@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Seller dashboard · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .seller-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  @media (min-width: 960px) {
+    .seller-shell { grid-template-columns: 248px 1fr; }
+    .with-tabbar { padding-bottom: 0; }
+    .tabbar { display: none; }
+  }
+  .sidebar {
+    border-right: var(--border-hair); background: var(--paper-0);
+    padding: 24px 16px; display: none;
+  }
+  @media (min-width: 960px) { .sidebar { display: block; position: sticky; top: 0; height: 100vh; } }
+  .sidebar__brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 24px; font-weight: 700; font-size: var(--fs-md); }
+  .sidebar__brand .brand__mark { width:28px; height:28px; border-radius:8px; background:var(--ink-900); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
+  .sidebar__group { font-size: var(--fs-xs); font-weight: 700; color: var(--paper-400); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 8px 6px; }
+  .sidebar a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    color: var(--paper-700); font-weight: 500; font-size: var(--fs-sm);
+    transition: background var(--dur), color var(--dur);
+  }
+  .sidebar a:hover { background: var(--paper-50); color: var(--ink-900); }
+  .sidebar a[aria-current="page"] { background: var(--brand-50); color: var(--brand-700); font-weight: 600; }
+  .sidebar a[aria-current="page"] svg { color: var(--brand-600); }
+
+  .seller-main { background: var(--paper-50); min-height: 100vh; }
+  .seller-topbar {
+    height: 64px; padding: 0 28px; background: var(--paper-0);
+    border-bottom: var(--border-hair); display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 5;
+  }
+  @media (max-width: 959px) { .seller-topbar { display: none; } }
+  .seller-content { padding: 28px; max-width: 1280px; margin: 0 auto; }
+
+  .stats { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 24px; }
+  .stat {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    padding: 20px;
+  }
+  .stat__label { font-size: var(--fs-xs); font-weight: 600; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat__value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--ink-900); margin-top: 8px; letter-spacing: -0.02em; }
+  .stat__delta { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); margin-top: 4px; font-weight: 600; }
+  .stat__delta--up { color: var(--ok-700); }
+  .stat__delta--dn { color: var(--bad-600); }
+
+  .panel {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .panel__head {
+    padding: 18px 22px; border-bottom: var(--border-hair);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .panel__title { font-weight: 700; color: var(--ink-900); font-size: var(--fs-md); }
+
+  .listings-table { width: 100%; }
+  .listings-table th, .listings-table td { padding: 14px 22px; text-align: left; border-bottom: 1px solid var(--paper-100); font-size: var(--fs-sm); }
+  .listings-table thead { background: var(--paper-50); }
+  .listings-table th { font-size: var(--fs-xs); color: var(--paper-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .listings-table tr:last-child td { border-bottom: none; }
+  .listings-table .car-cell { display: flex; align-items: center; gap: 12px; }
+  .listings-table .thumb { width: 64px; height: 48px; border-radius: 8px; flex-shrink: 0; overflow: hidden; }
+  .spark { display: inline-block; }
+
+  .grid-2-1 { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 960px) { .grid-2-1 { grid-template-columns: 2fr 1fr; } }
+
+  .task-row { display: flex; align-items: center; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--paper-100); }
+  .task-row:last-child { border-bottom: none; }
+  .task-row__icon { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .task-row__main { flex: 1; min-width: 0; font-size: var(--fs-sm); }
+  .task-row__main strong { display:block; color: var(--ink-900); font-weight: 600; }
+  .task-row__main span { color: var(--paper-500); font-size: var(--fs-xs); }
+
+  .insight-card {
+    padding: 22px;
+    background: linear-gradient(140deg, #1e3a8a, #1e1b4b);
+    color: #fff; border-radius: var(--r-lg);
+  }
+  .insight-card .kicker { color: rgba(255,255,255,0.6); }
+  .insight-card h3 { font-size: 22px; margin: 8px 0 12px; line-height:1.2; }
+  .insight-card h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #c7d2fe; }
+  .insight-card p { color: rgba(255,255,255,0.75); font-size: var(--fs-sm); line-height: 1.55; margin-bottom: 14px; }
+
+  .mobile-head { display: flex; align-items:center; gap:8px; padding: 16px; border-bottom: var(--border-hair); background: var(--paper-0); }
+  @media (min-width: 960px) { .mobile-head { display: none; } }
+</style></head>
+<body>
+<div class="seller-shell with-tabbar">
+
+  <aside class="sidebar">
+    <div class="sidebar__brand"><span class="brand__mark">A</span> AutoMart Sellers</div>
+    <a href="/app/owner/dashboard.html" aria-current="page"><span data-icon="home" data-size="18"></span>Dashboard</a>
+    <a href="#"><span data-icon="tag" data-size="18"></span>My listings <span style="margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--paper-400);">3</span></a>
+    <a href="/app/chat/index.html"><span data-icon="chat" data-size="18"></span>Messages <span style="margin-left:auto; background:var(--brand-600); color:#fff; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:700;">5</span></a>
+    <a href="#"><span data-icon="rupee" data-size="18"></span>Offers</a>
+    <div class="sidebar__group">Trust</div>
+    <a href="/app/seller/verify.html"><span data-icon="verified" data-size="18"></span>Verification</a>
+    <a href="#"><span data-icon="doc" data-size="18"></span>Reviews</a>
+    <div class="sidebar__group">Account</div>
+    <a href="/app/seller/account.html"><span data-icon="user" data-size="18"></span>Profile & settings</a>
+    <a href="#"><span data-icon="bell" data-size="18"></span>Notifications</a>
+  </aside>
+
+  <div class="seller-main">
+    <div class="mobile-head">
+      <a class="brand" href="/app/index.html"><span class="brand__mark">A</span></a>
+      <strong style="margin-left:auto;">Seller dashboard</strong>
+    </div>
+    <header class="seller-topbar">
+      <h2 style="font-size:var(--fs-lg);">Welcome back, Hassan</h2>
+      <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+        <button class="iconbtn"><span data-icon="bell" data-size="18"></span><span class="iconbtn__badge">2</span></button>
+        <a href="/app/seller/new.html" class="btn btn--primary btn--sm"><span data-icon="plus" data-size="14"></span>New listing</a>
+      </div>
+    </header>
+
+    <main class="seller-content">
+
+      <div class="stats">
+        <div class="stat am-rise">
+          <div class="stat__label">Total views (7d)</div>
+          <div class="stat__value">4,128</div>
+          <div class="stat__delta stat__delta--up">↑ 18% vs last week</div>
+        </div>
+        <div class="stat am-rise" data-d="1">
+          <div class="stat__label">Inquiries</div>
+          <div class="stat__value">37</div>
+          <div class="stat__delta stat__delta--up">↑ 6 new today</div>
+        </div>
+        <div class="stat am-rise" data-d="2">
+          <div class="stat__label">Active offers</div>
+          <div class="stat__value">5</div>
+          <div class="stat__delta" style="color:var(--paper-500);">2 above ask · 3 below</div>
+        </div>
+        <div class="stat am-rise" data-d="3">
+          <div class="stat__label">Avg. response time</div>
+          <div class="stat__value">42<span style="font-size:18px; color:var(--paper-500);">m</span></div>
+          <div class="stat__delta stat__delta--up">Top 15% of sellers</div>
+        </div>
+      </div>
+
+      <div class="grid-2-1">
+        <section class="panel am-rise" data-d="2">
+          <div class="panel__head">
+            <div>
+              <div class="panel__title">My listings</div>
+              <div style="font-size:var(--fs-xs); color:var(--paper-500); margin-top:2px;">3 active · 1 sold this month</div>
+            </div>
+            <a href="/app/seller/new.html" class="btn btn--ghost btn--sm">+ New</a>
+          </div>
+          <table class="listings-table">
+            <thead><tr><th>Car</th><th>Status</th><th>Views</th><th>Asking</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+        <div class="col" style="gap:24px;">
+          <section class="insight-card am-rise" data-d="3">
+            <span class="kicker">AI co-pilot</span>
+            <h3>Your Civic is <em>likely</em> to sell within 8 days.</h3>
+            <p>3 buyers viewed it twice. Best offer is PKR 1.3L below ask — within negotiation range. We'd accept or counter at 46.8L.</p>
+            <button class="btn" style="background:#fff; color:#1e1b4b;">Counter at 46.8L</button>
+          </section>
+
+          <section class="panel am-rise" data-d="4">
+            <div class="panel__head"><div class="panel__title">To do</div></div>
+            <div class="task-row">
+              <div class="task-row__icon" style="background:var(--warn-50); color:var(--warn-700);"><span data-icon="chat" data-size="16"></span></div>
+              <div class="task-row__main"><strong>2 unanswered messages</strong><span>Bilal A. · 3h ago</span></div>
+              <a href="/app/chat/index.html" class="btn btn--ghost btn--sm">Reply</a>
+            </div>
+            <div class="task-row">
+              <div class="task-row__icon" style="background:var(--brand-50); color:var(--brand-700);"><span data-icon="rupee" data-size="16"></span></div>
+              <div class="task-row__main"><strong>New offer · PKR 31.5L</strong><span>On Yaris ATIV X · Counter or accept</span></div>
+              <a href="#" class="btn btn--ghost btn--sm">View</a>
+            </div>
+            <div class="task-row">
+              <div class="task-row__icon" style="background:var(--paper-100); color:var(--paper-700);"><span data-icon="cam" data-size="16"></span></div>
+              <div class="task-row__main"><strong>Add 2 more photos to Swift</strong><span>Listings with 8+ photos sell 2.4× faster</span></div>
+              <a href="/app/seller/new.html" class="btn btn--ghost btn--sm">Edit</a>
+            </div>
+            <div class="task-row">
+              <div class="task-row__icon" style="background:var(--ok-50); color:var(--ok-700);"><span data-icon="verified" data-size="16"></span></div>
+              <div class="task-row__main"><strong>Get verified seller badge</strong><span>3-step CNIC + ownership check</span></div>
+              <a href="/app/seller/verify.html" class="btn btn--ghost btn--sm">Start</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html" aria-current="page"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="/app/seller/new.html"><span data-icon="plus" data-size="20"></span>New listing</a>
+  <a href="/app/chat/index.html"><span data-icon="chat" data-size="20"></span>Chats</a>
+  <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile, formatPKR, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+function formatL(minor) {
+  const pkr = minor/100;
+  if (pkr>=10000000) return 'PKR '+(pkr/10000000).toFixed(2)+'Cr';
+  return 'PKR '+(pkr/100000).toFixed(1)+'L';
+}
+function timeAgo(ts) {
+  const s=Math.floor((Date.now()-new Date(ts))/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+const user = await getCurrentUser();
+const profile = await getUserProfile();
+if (!user || !profile) return;
+if (profile.primary_role !== 'seller' && profile.primary_role !== 'owner' && !profile.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
+
+// Update welcome name
+document.querySelector('.seller-topbar h2').textContent = `Welcome back, ${(profile.display_name||'').split(' ')[0]}`;
+
+initUnreadBadge('.iconbtn__badge');
+
+// Load listings
+const { data: listings } = await supabase
+  .from('listings')
+  .select('id, make, model, variant, year, mileage, city, price_minor, status, views_count, primary_photo_url, created_at, updated_at')
+  .eq('seller_id', user.id)
+  .order('created_at', { ascending: false });
+
+const tbody = document.querySelector('.listings-table tbody');
+const statsEls = document.querySelectorAll('.stat');
+let allListings = listings || [];
+
+function renderListings(ls) {
+  if (!ls.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--paper-400);padding:32px;">No listings yet. <a href="/app/seller/new.html" style="color:var(--brand-700);">Create your first listing →</a></td></tr>';
+    return;
+  }
+  const active = ls.filter(l => l.status === 'active');
+  if (statsEls[0]) statsEls[0].querySelector('.stat__value').textContent = active.reduce((s,l)=>s+(l.views_count||0),0).toLocaleString();
+  document.querySelector('.panel__head div div').innerHTML = `<div class="panel__title">My listings</div><div style="font-size:var(--fs-xs);color:var(--paper-500);margin-top:2px;">${active.length} active · ${ls.filter(l=>l.status==='sold').length} sold</div>`;
+  tbody.innerHTML = ls.map(l => {
+    const statusHtml = l.status==='active'
+      ? '<span class="pill pill--ok"><span class="dot dot--ok"></span>Live</span>'
+      : l.status==='sold' ? '<span class="pill pill--ink">Sold</span>'
+      : l.status==='paused' ? '<span class="pill"><span class="dot"></span>Paused</span>'
+      : '<span class="pill"><span class="dot"></span>Draft</span>';
+    const actions = l.status==='sold' ? '—' : `<div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <a href="/app/seller/new.html?id=${l.id}" class="btn btn--ghost btn--sm">Edit</a>
+      ${l.status==='active' ? `<button class="btn btn--ghost btn--sm" data-act="pause" data-lid="${l.id}">Pause</button>` : ''}
+      ${l.status==='paused' ? `<button class="btn btn--ghost btn--sm" data-act="activate" data-lid="${l.id}">Activate</button>` : ''}
+      <button class="btn btn--sm" style="color:var(--bad-500);background:var(--bad-50);" data-act="delete" data-lid="${l.id}">Del</button>
+    </div>`;
+    return `<tr data-row="${l.id}">
+      <td><div class="car-cell">
+        <div class="thumb">${l.primary_photo_url?`<img src="${l.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`:'<div class="imgslot"><div class="imgslot__car"></div></div>'}</div>
+        <div><div style="font-weight:600;color:var(--ink-900);">${l.year} ${l.make} ${l.model}${l.variant?' '+l.variant:''}</div><div style="color:var(--paper-500);font-size:var(--fs-xs);">${(l.mileage||0).toLocaleString()} km · ${l.city||''}</div></div>
+      </div></td>
+      <td>${statusHtml}</td>
+      <td><strong style="font-family:var(--font-mono);">${(l.views_count||0).toLocaleString()}</strong></td>
+      <td style="font-family:var(--font-mono);font-weight:600;">${formatL(l.price_minor)}</td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { act, lid } = btn.dataset;
+      if (act === 'pause') {
+        await supabase.from('listings').update({status:'paused'}).eq('id',lid);
+        const idx = allListings.findIndex(l=>l.id===lid);
+        if (idx>=0) { allListings[idx].status='paused'; renderListings(allListings); }
+      } else if (act === 'activate') {
+        await supabase.from('listings').update({status:'active'}).eq('id',lid);
+        const idx = allListings.findIndex(l=>l.id===lid);
+        if (idx>=0) { allListings[idx].status='active'; renderListings(allListings); }
+      } else if (act === 'delete') {
+        if (!confirm('Delete this listing permanently?')) return;
+        await supabase.from('listing_photos').delete().eq('listing_id',lid);
+        await supabase.from('listings').delete().eq('id',lid);
+        allListings = allListings.filter(l=>l.id!==lid);
+        renderListings(allListings);
+      }
+    });
+  });
+}
+
+renderListings(allListings);
+
+// Realtime — refresh without full reload
+supabase.channel('seller-dashboard')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'listings', filter: `seller_id=eq.${user.id}` }, async () => {
+    const { data: fresh } = await supabase.from('listings').select('id,make,model,variant,year,mileage,city,price_minor,status,views_count,primary_photo_url,created_at').eq('seller_id',user.id).order('created_at',{ascending:false});
+    allListings = fresh || [];
+    renderListings(allListings);
+  })
+  .subscribe();
+})();
+</script>
+</body></html>

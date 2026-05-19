@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AutoMart</title>
+<link rel="stylesheet" href="/app/shared/app.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--paper-0); }
+  .splash { text-align:center; }
+  .splash__mark { width:52px; height:52px; border-radius:14px; background:var(--ink-900); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; margin-bottom:16px; }
+  .splash__label { color:var(--paper-400); font-size:var(--fs-sm); }
+</style>
+</head>
+<body>
+<div class="splash">
+  <div class="splash__mark">A</div>
+  <div class="splash__label">Loading…</div>
+</div>
+<script type="module">
+import { supabase, getUserProfile } from '/app/shared/supabase.js';
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.replace('/app/login.html'); return; }
+  const profile = await getUserProfile();
+  if (!profile) { window.location.replace('/app/login.html'); return; }
+  if (profile.is_admin) { window.location.replace('/app/admin/verifications.html'); return; }
+  if (profile.primary_role === 'seller' || profile.primary_role === 'owner') { window.location.replace('/app/owner/dashboard.html'); return; }
+  window.location.replace('/app/buyer/index.html');
+})();
+</script>
+</body>
+</html>

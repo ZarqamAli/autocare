@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sign in · AutoMart</title>
+<meta name="description" content="Sign in to AutoMart — Pakistan's verified marketplace for buying and selling cars.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/app.css">
+<link rel="stylesheet" href="shared/mobile.css">
+<style>
+  /* Page-specific touches */
+  .auth__title-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .signin-toggle {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--paper-100); border-radius: var(--r-md);
+    padding: 4px; margin-bottom: 18px; gap: 4px;
+  }
+  .signin-toggle button {
+    height: 36px; border: none; background: transparent;
+    border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: var(--fs-sm); font-weight: 600;
+    color: var(--paper-500);
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .signin-toggle button[aria-pressed="true"] {
+    background: var(--paper-0); color: var(--ink-900);
+    box-shadow: var(--shadow-xs);
+  }
+  .pwfield { position: relative; }
+  .pwfield .input { padding-right: 48px; }
+  .pwfield__eye {
+    position: absolute; right: 6px; top: 6px; width: 36px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px; border: none; background: transparent;
+    color: var(--paper-500); cursor: pointer;
+  }
+  .pwfield__eye:hover { background: var(--paper-100); color: var(--ink-900); }
+  .row-link {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 4px;
+  }
+  .row-link a { color: var(--brand-700); font-size: var(--fs-sm); font-weight: 600; }
+
+  /* Cinematic side rail (desktop only) */
+  .auth--split { display: grid; grid-template-rows: auto 1fr auto; }
+  @media (min-width: 980px) {
+    .auth__main { padding: 32px; }
+    .auth__layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 48px; max-width: 1180px; width: 100%; align-items: center;
+    }
+    .auth__card { margin: 0; }
+    .auth__aside {
+      position: relative; padding: 48px;
+      border-radius: var(--r-2xl);
+      background: linear-gradient(180deg, #0b1220 0%, #050810 100%);
+      color: #e8ecf5; min-height: 540px;
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .auth__aside::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(600px 300px at 80% 10%, rgba(37,99,235,0.45), transparent 60%),
+        radial-gradient(420px 280px at 10% 90%, rgba(99,102,241,0.30), transparent 60%);
+      pointer-events: none;
+    }
+    .auth__aside::after {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0);
+      background-size: 22px 22px;
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 80%);
+      pointer-events: none;
+    }
+  }
+  @media (max-width: 979px) {
+    .auth__aside { display: none; }
+  }
+  .aside-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px 6px 8px; border-radius: var(--r-pill);
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: var(--fs-xs); color: rgba(255,255,255,0.85); font-weight: 600;
+    letter-spacing: -0.005em;
+    position: relative; z-index: 2;
+  }
+  .aside-pill .dot { background: #34d399; }
+  .aside-pill .dot::after { background: #34d399; }
+  .aside-quote {
+    position: relative; z-index: 2;
+    font-family: var(--font-serif); font-style: italic; font-weight: 400;
+    font-size: clamp(28px, 3vw, 40px); line-height: 1.18; letter-spacing: -0.01em;
+    color: #fff;
+  }
+  .aside-quote em { color: var(--brand-300); font-style: italic; }
+  .aside-stats {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.10);
+  }
+  .aside-stats__num {
+    font-family: var(--font-mono); font-size: 28px; font-weight: 700;
+    color: #fff; letter-spacing: -0.02em;
+  }
+  .aside-stats__lbl {
+    font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 600; margin-top: 2px;
+  }
+  .aside-card {
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: var(--r-md);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(12px);
+  }
+  .aside-card__avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #f0abfc, #818cf8);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff;
+  }
+  .aside-card__name { font-weight: 600; color: #fff; font-size: var(--fs-sm); }
+  .aside-card__sub { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .aside-card__price {
+    margin-left: auto; font-family: var(--font-mono); font-weight: 700; color: var(--brand-300);
+  }
+</style>
+</head>
+<body>
+  <div class="auth auth--split">
+    <header class="auth__top">
+      <a class="brand" href="/app/buyer/index.html" aria-label="AutoMart home">
+        <span class="brand__mark">A</span>
+        <span>AutoMart</span>
+      </a>
+      <nav class="row gap-3" style="font-size:var(--fs-sm); color:var(--paper-500);">
+        <a class="btn btn--ghost btn--sm hide-mobile" href="/app/emergency.html">Emergency</a>
+        <a class="btn btn--ghost btn--sm hide-mobile" href="/app/nearby.html">Find Workshop</a>
+        <span class="hide-mobile">New here?</span>
+        <a class="btn btn--ghost btn--sm" href="signup.html">Create account</a>
+      </nav>
+    </header>
+
+    <main class="auth__main">
+      <div class="auth__layout">
+        <!-- Card -->
+        <section class="auth__card am-rise" aria-labelledby="auth-title">
+          <div class="row gap-2 mt-2 am-rise" data-d="1" style="margin-bottom:18px;">
+            <span class="kicker">Welcome back</span>
+          </div>
+
+          <h1 id="auth-title" class="auth__title am-rise" data-d="2">
+            Sign in to your <em>garage</em>.
+          </h1>
+          <p class="auth__sub am-rise" data-d="3">
+            Continue browsing verified listings, manage offers, and pick up where you left off.
+          </p>
+
+          <div class="signin-toggle am-rise" data-d="4" role="tablist" aria-label="Sign in method">
+            <button type="button" aria-pressed="true">Phone number</button>
+            <button type="button" aria-pressed="false">Email address</button>
+          </div>
+
+          <form class="col" style="gap:14px;" novalidate>
+            <div class="field am-rise" data-d="5">
+              <label class="field__label" for="login-phone">Phone number</label>
+              <div class="input-affix">
+                <span class="input-affix__lead mono">🇵🇰&nbsp;+92</span>
+                <input id="login-phone" class="input" type="tel" inputmode="numeric" placeholder="3XX XXX XXXX" autocomplete="tel-national" required>
+              </div>
+            </div>
+
+            <div class="field am-rise" data-d="6">
+              <label class="field__label" for="login-pw">Password</label>
+              <div class="pwfield">
+                <input id="login-pw" class="input" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+                <button type="button" class="pwfield__eye" aria-label="Show password" data-eye>
+                  <span data-icon="eye" data-size="18"></span>
+                </button>
+              </div>
+              <div class="row-link">
+                <label class="row gap-2" style="font-size:var(--fs-sm); color:var(--paper-700); cursor:pointer;">
+                  <input type="checkbox" style="accent-color: var(--brand-600); width:16px; height:16px;">
+                  Keep me signed in
+                </label>
+                <a href="reset-password.html">Forgot password?</a>
+              </div>
+            </div>
+
+            <button class="btn btn--primary btn--lg btn--block am-rise" data-d="7" type="submit">
+              Sign in
+              <span data-icon="arrow-r" data-size="18"></span>
+            </button>
+
+            <div class="auth__divider am-rise" data-d="8">or continue with</div>
+
+            <button class="btn btn--ghost btn--lg btn--block am-rise" data-d="8" type="button">
+              <span data-icon="google" data-size="18"></span>
+              Google
+            </button>
+          </form>
+
+          <p class="auth__foot">
+            Don't have an account? <a href="signup.html">Create one — it's free</a>
+          </p>
+
+          <div class="auth__trust am-fade" data-d="8" style="margin-top:24px; padding-top:18px; border-top: var(--border-hair);">
+            <span class="row gap-2"><span class="dot"></span>&nbsp;<strong>4,217</strong> active listings</span>
+            <span class="row gap-2"><span data-icon="shield" data-size="14" style="color:var(--ok-600)"></span><strong>NADRA-verified</strong> sellers</span>
+          </div>
+        </section>
+
+        <!-- Cinematic aside (desktop only) -->
+        <aside class="auth__aside hide-mobile am-fade" data-d="2">
+          <div class="row gap-3" style="position:relative; z-index:2;">
+            <span class="aside-pill"><span class="dot"></span> Live · 4,217 cars</span>
+            <span class="aside-pill" style="background:rgba(37,99,235,0.18); border-color:rgba(96,165,250,0.30); color:#bfdbfe;">
+              <span data-icon="shield" data-size="14"></span> Escrow protected
+            </span>
+          </div>
+
+          <p class="aside-quote">
+            The fastest way to <em>buy</em> and <em>sell</em><br>
+            a car in Pakistan — without the<br>
+            tire-kickers.
+          </p>
+
+          <div style="display:flex; flex-direction:column; gap:18px; position:relative; z-index:2;">
+            <div class="aside-card">
+              <div class="aside-card__avatar">UA</div>
+              <div>
+                <div class="aside-card__name">Usman A. <span style="opacity:0.6; font-weight:400;">just listed</span></div>
+                <div class="aside-card__sub">2022 Honda Civic Oriel · Lahore</div>
+              </div>
+              <div class="aside-card__price">PKR 68.5L</div>
+            </div>
+            <div class="aside-card">
+              <div class="aside-card__avatar" style="background:linear-gradient(135deg,#5eead4,#2563eb);">SK</div>
+              <div>
+                <div class="aside-card__name">Sara K. <span style="opacity:0.6; font-weight:400;">made an offer</span></div>
+                <div class="aside-card__sub">2019 Suzuki Swift GLX · Karachi</div>
+              </div>
+              <div class="aside-card__price" style="color:#fbbf24;">PKR 27.4L</div>
+            </div>
+          </div>
+
+          <div class="aside-stats">
+            <div>
+              <div class="aside-stats__num">4.2K</div>
+              <div class="aside-stats__lbl">Live listings</div>
+            </div>
+            <div>
+              <div class="aside-stats__num">1.8K</div>
+              <div class="aside-stats__lbl">Verified sellers</div>
+            </div>
+            <div>
+              <div class="aside-stats__num">PKR 2.1B</div>
+              <div class="aside-stats__lbl">Vehicles sold</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="auth__bot">
+      <span>© 2025 AutoMart Pakistan (Pvt.) Ltd.</span>
+      <nav class="row gap-4">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Help</a>
+      </nav>
+    </footer>
+  </div>
+
+  <script src="shared/icons.js"></script>
+  <script>
+    // Password eye toggle
+    document.querySelectorAll('[data-eye]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inp = btn.parentElement.querySelector('input');
+        const showing = inp.type === 'text';
+        inp.type = showing ? 'password' : 'text';
+        btn.querySelector('span').setAttribute('data-icon', showing ? 'eye' : 'eye-off');
+        btn.querySelector('span').dataset.iconMounted = '';
+        btn.querySelector('span').innerHTML = '';
+        AMIcon.mount(btn);
+      });
+    });
+    // Sign-in method tabs (visual only)
+    document.querySelectorAll('.signin-toggle button').forEach((b, i, arr) => {
+      b.addEventListener('click', () => {
+        arr.forEach(x => x.setAttribute('aria-pressed', 'false'));
+        b.setAttribute('aria-pressed', 'true');
+      });
+    });
+  </script>
+  <script type="module">
+    import { supabase } from './shared/supabase.js';
+
+    // Clear stale sessions to prevent Realtime "401 socket closed unexpectedly"
+    // and redirect already-logged-in users.
+    (async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles').select('primary_role, is_admin').eq('id', session.user.id).maybeSingle();
+          if (profile?.is_admin) {
+            window.location.replace('admin/verifications.html'); return;
+          }
+          if (profile?.primary_role === 'seller' || profile?.primary_role === 'owner') {
+            window.location.replace('owner/dashboard.html'); return;
+          }
+          if (profile?.primary_role === 'mechanic') {
+            window.location.replace('mechanic/dashboard.html'); return;
+          }
+          window.location.replace('buyer/index.html');
+        } else {
+          // No valid session — sign out locally to clear any stale tokens from localStorage
+          await supabase.auth.signOut({ scope: 'local' });
+        }
+      } catch (_) {
+        // If session check fails, stay on login page
+      }
+    })();
+
+    if (new URLSearchParams(location.search).get('expired') === '1') {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#fef3c7;border:1px solid #f59e0b;color:#92400e;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;margin-bottom:12px;';
+      banner.textContent = 'Your session expired. Please sign in again.';
+      document.querySelector('.auth__card').insertBefore(banner, document.querySelector('form'));
+    }
+
+    function showAuthError(msg) {
+      let el = document.getElementById('am-auth-err');
+      if (!el) {
+        el = document.createElement('p');
+        el.id = 'am-auth-err';
+        el.style.cssText = 'color:#dc2626;font-size:14px;margin:0 0 8px;font-weight:600;';
+        document.querySelector('form').prepend(el);
+      }
+      el.textContent = msg;
+    }
+
+    // Relabel the identifier field when the email tab is selected
+    const toggleBtns = document.querySelectorAll('.signin-toggle button');
+    const phoneLabel = document.querySelector('label[for="login-phone"]');
+    const phoneInput = document.getElementById('login-phone');
+    const phonePrefix = document.querySelector('.input-affix__lead');
+    toggleBtns.forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        if (i === 1) {
+          phoneLabel.textContent = 'Email address';
+          phoneInput.placeholder = 'you@email.com';
+          phoneInput.type = 'email';
+          if (phonePrefix) phonePrefix.style.display = 'none';
+        } else {
+          phoneLabel.textContent = 'Phone number';
+          phoneInput.placeholder = '3XX XXX XXXX';
+          phoneInput.type = 'tel';
+          if (phonePrefix) phonePrefix.style.display = '';
+        }
+      });
+    });
+
+    document.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const activeBtn  = document.querySelector('.signin-toggle button[aria-pressed="true"]');
+      const isPhone    = activeBtn?.textContent.trim() === 'Phone number';
+      const identifier = document.getElementById('login-phone').value.trim();
+      const password   = document.getElementById('login-pw').value;
+
+      if (!identifier || !password) { showAuthError('Please enter your credentials.'); return; }
+
+      const email = isPhone
+        ? identifier.replace(/\s/g, '') + '@phone.automart.pk'
+        : identifier;
+
+      const btn = document.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showAuthError(error.message);
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        return;
+      }
+
+      let { data: profile } = await supabase
+        .from('profiles').select('primary_role, is_admin').eq('id', data.user.id).maybeSingle();
+
+      if (!profile) {
+        // Profile missing — send to signup to complete registration rather than
+        // silently creating a 'buyer' row (which would permanently downgrade owners).
+        window.location.href = '/app/signup.html';
+        return;
+      }
+
+      if (profile?.is_admin) {
+        window.location.href = 'admin/verifications.html';
+      } else if (profile?.primary_role === 'seller' || profile?.primary_role === 'owner') {
+        window.location.href = 'owner/dashboard.html';
+      } else if (profile?.primary_role === 'mechanic') {
+        window.location.href = 'mechanic/dashboard.html';
+      } else {
+        window.location.href = 'buyer/index.html';
+      }
+    });
+  </script>
+</body>
+</html>

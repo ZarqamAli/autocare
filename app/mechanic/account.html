@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Account · AutoCare Mechanic</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .acct { max-width: 640px; margin: 0 auto; padding: 28px 20px 96px; }
+  .acct-head { margin-bottom: 28px; }
+  .acct-head h1 { font-size: clamp(22px,3vw,32px); letter-spacing: -0.025em; }
+  .acct-head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+
+  .section { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl); padding: 24px; margin-bottom: 16px; }
+  .section-title { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--paper-500); margin-bottom: 18px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 14px; border: var(--border-hair); border-radius: 10px;
+    font-size: var(--fs-sm); font-family: inherit; color: var(--ink-900);
+    background: var(--paper-0); transition: border-color var(--dur-fast);
+    box-sizing: border-box;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--brand-400); box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+  .field textarea { resize: vertical; min-height: 72px; }
+  .field--locked input {
+    background: var(--paper-75); color: var(--paper-500); cursor: not-allowed;
+  }
+
+  .photo-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .photo-preview {
+    width: 80px; height: 80px; border-radius: var(--r-lg); object-fit: cover;
+    border: var(--border-hair); background: var(--paper-75); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--paper-400); font-size: 28px;
+  }
+  .photo-preview img { width: 80px; height: 80px; border-radius: var(--r-lg); object-fit: cover; }
+  .photo-upload-btn { display: inline-flex; align-items: center; gap: 8px; }
+  #photo-input { display: none; }
+  .upload-progress { font-size: var(--fs-xs); color: var(--brand-600); font-weight: 600; display: none; margin-top: 4px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: var(--r-pill);
+    font-size: var(--fs-xs); font-weight: 700;
+  }
+  .badge--approved { background: #dcfce7; color: #15803d; }
+  .badge--pending  { background: #fef3c7; color: #92400e; }
+  .badge--rejected { background: #fee2e2; color: #dc2626; }
+
+  .readonly-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--paper-100); }
+  .readonly-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .readonly-row:first-child { padding-top: 0; }
+  .readonly-row__lbl { font-size: var(--fs-xs); font-weight: 700; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.05em; }
+  .readonly-row__val { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--ink-900); font-weight: 600; }
+
+  .save-bar { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+  .saved-msg { font-size: var(--fs-sm); color: var(--ok-700); font-weight: 600; display: none; }
+  .error-msg { font-size: var(--fs-sm); color: #dc2626; font-weight: 600; display: none; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/mechanic/dashboard.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoCare</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--ghost btn--sm" href="/app/mechanic/dashboard.html">← Dashboard</a>
+  </div>
+</header>
+
+<main class="acct">
+  <div class="acct-head am-rise">
+    <h1>My <em>Account</em></h1>
+  </div>
+
+  <div id="acct-content">
+    <div style="text-align:center;padding:48px;color:var(--paper-400);">Loading…</div>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/mechanic/dashboard.html"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="/app/mechanic/scan.html"><span data-icon="qr" data-size="20"></span>Scan</a>
+  <a href="/app/mechanic/account.html" aria-current="page"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const uid = session.user.id;
+
+  const { data: profile, error: profErr } = await supabase
+    .from('profiles').select('primary_role, is_admin').eq('id', uid).maybeSingle();
+  if (!profile || (profile.primary_role !== 'mechanic' && !profile.is_admin)) {
+    window.location.href = '/app/login.html'; return;
+  }
+
+  const { data: mp, error: mpErr } = await supabase
+    .from('mechanic_profiles')
+    .select('*')
+    .eq('user_id', uid)
+    .maybeSingle();
+
+  const content = document.getElementById('acct-content');
+
+  if (!mp) {
+    content.innerHTML = `<div class="section"><p style="color:var(--paper-500);">No mechanic profile found. Please complete your registration.</p></div>`;
+    return;
+  }
+
+  // Build photo src (signed URL if path exists)
+  let photoSrc = null;
+  if (mp.workshop_photo_url) {
+    const { data: signed } = await supabase.storage
+      .from('mechanic-docs')
+      .createSignedUrl(mp.workshop_photo_url.replace(/^mechanic-docs\//, ''), 3600);
+    photoSrc = signed?.signedUrl || null;
+  }
+
+  const statusMap = {
+    approved: ['badge--approved', '✓ Approved'],
+    pending:  ['badge--pending',  '⏳ Pending review'],
+    rejected: ['badge--rejected', '✗ Rejected'],
+  };
+  const [statusCls, statusLabel] = statusMap[mp.status] || ['badge--pending', mp.status];
+
+  const memberSince = mp.created_at
+    ? new Date(mp.created_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+
+  content.innerHTML = `
+    <!-- Editable form -->
+    <div class="section am-rise">
+      <div class="section-title">Workshop details</div>
+
+      <div class="photo-wrap">
+        <div class="photo-preview" id="photo-preview">
+          ${photoSrc ? `<img id="photo-img" src="${photoSrc}" alt="Workshop photo">` : '<span>🏪</span>'}
+        </div>
+        <div>
+          <label class="btn btn--ghost btn--sm photo-upload-btn" for="photo-input">
+            <span data-icon="cam" data-size="15"></span> Change photo
+          </label>
+          <input type="file" id="photo-input" accept="image/*">
+          <div class="upload-progress" id="upload-progress">Uploading…</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-workshop">Workshop name</label>
+        <input id="f-workshop" type="text" value="${escHtml(mp.workshop_name || '')}" placeholder="e.g. Al-Noor Auto Workshop">
+      </div>
+      <div class="field">
+        <label for="f-address">Address</label>
+        <input id="f-address" type="text" value="${escHtml(mp.address || '')}" placeholder="Street address">
+      </div>
+      <div class="field">
+        <label for="f-city">City</label>
+        <input id="f-city" type="text" value="${escHtml(mp.city || '')}" placeholder="e.g. Lahore">
+      </div>
+      <div class="field">
+        <label for="f-phone">Phone</label>
+        <input id="f-phone" type="tel" value="${escHtml(mp.phone || '')}" placeholder="e.g. 0300-1234567">
+      </div>
+      <div class="field">
+        <label for="f-hours">Working hours</label>
+        <input id="f-hours" type="text" value="${escHtml(mp.working_hours || '')}" placeholder="e.g. 9am – 6pm, Mon–Sat">
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn--primary" id="save-btn">Save changes</button>
+        <span class="saved-msg" id="saved-msg">✓ Saved</span>
+        <span class="error-msg" id="error-msg"></span>
+      </div>
+    </div>
+
+    <!-- Read-only section -->
+    <div class="section am-rise" data-d="1">
+      <div class="section-title">Verification info</div>
+      <div class="readonly-row">
+        <span class="readonly-row__lbl">CNIC number</span>
+        <span class="readonly-row__val">${escHtml(mp.cnic_number || '—')}</span>
+      </div>
+      <div class="readonly-row">
+        <span class="readonly-row__lbl">Verification status</span>
+        <span class="badge ${statusCls}">${statusLabel}</span>
+      </div>
+      ${mp.rejection_reason ? `<div class="readonly-row">
+        <span class="readonly-row__lbl">Rejection reason</span>
+        <span style="font-size:var(--fs-sm);color:#dc2626;">${escHtml(mp.rejection_reason)}</span>
+      </div>` : ''}
+      <div class="readonly-row">
+        <span class="readonly-row__lbl">Member since</span>
+        <span class="readonly-row__val">${memberSince}</span>
+      </div>
+    </div>
+
+    <!-- Sign out -->
+    <div class="section am-rise" data-d="2" style="padding:16px 24px;">
+      <button class="btn btn--ghost" id="signout-btn" style="width:100%;justify-content:center;color:var(--paper-500);">Sign out</button>
+    </div>
+  `;
+
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(content);
+
+  // Photo upload
+  let currentPhotoPath = mp.workshop_photo_url || null;
+
+  document.getElementById('photo-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const prog = document.getElementById('upload-progress');
+    prog.style.display = 'block';
+
+    const ext = file.name.split('.').pop();
+    const path = `${uid}/workshop_photo_${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('mechanic-docs')
+      .upload(path, file, { upsert: true });
+
+    if (upErr) {
+      prog.textContent = 'Upload failed: ' + upErr.message;
+      return;
+    }
+
+    currentPhotoPath = path;
+    prog.style.display = 'none';
+
+    // Show preview via signed URL
+    const { data: signed } = await supabase.storage.from('mechanic-docs').createSignedUrl(path, 3600);
+    if (signed?.signedUrl) {
+      const prev = document.getElementById('photo-preview');
+      prev.innerHTML = `<img id="photo-img" src="${signed.signedUrl}" alt="Workshop photo">`;
+    }
+  });
+
+  // Save
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-btn');
+    const savedMsg = document.getElementById('saved-msg');
+    const errorMsg = document.getElementById('error-msg');
+    btn.disabled = true;
+    savedMsg.style.display = 'none';
+    errorMsg.style.display = 'none';
+
+    const address = document.getElementById('f-address').value.trim();
+    const city    = document.getElementById('f-city').value.trim();
+
+    // Re-geocode if address or city changed
+    let lat = mp.lat ?? null, lng = mp.lng ?? null;
+    if (address || city) {
+      try {
+        const geo = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent((address || '') + ', ' + (city || '') + ', Pakistan')}`,
+          { headers: { 'Accept-Language': 'en', 'User-Agent': 'AutoCare-App/1.0' } }
+        ).then(r => r.json());
+        if (geo?.length) { lat = parseFloat(geo[0].lat); lng = parseFloat(geo[0].lon); }
+        else { lat = null; lng = null; }
+      } catch (_) {}
+    }
+
+    const updates = {
+      workshop_name:    document.getElementById('f-workshop').value.trim(),
+      address,
+      city,
+      phone:            document.getElementById('f-phone').value.trim(),
+      working_hours:    document.getElementById('f-hours').value.trim(),
+      lat,
+      lng,
+    };
+    if (currentPhotoPath) updates.workshop_photo_url = currentPhotoPath;
+
+    const { error: saveErr } = await supabase
+      .from('mechanic_profiles')
+      .update(updates)
+      .eq('user_id', uid);
+
+    btn.disabled = false;
+    if (saveErr) {
+      errorMsg.textContent = saveErr.message;
+      errorMsg.style.display = 'inline';
+    } else {
+      savedMsg.style.display = 'inline';
+      setTimeout(() => { savedMsg.style.display = 'none'; }, 2500);
+    }
+  });
+
+  // Sign out
+  document.getElementById('signout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/app/login.html';
+  });
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

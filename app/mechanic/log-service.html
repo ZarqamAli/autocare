@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Log Service · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .ls { max-width: 640px; margin: 0 auto; padding: 28px 20px 80px; }
+  .vehicle-banner {
+    background: linear-gradient(135deg, var(--ink-900), #1e293b);
+    border-radius: var(--r-xl); padding: 20px 22px; margin-bottom: 24px; color: #fff;
+  }
+  .vehicle-banner__title { font-size: var(--fs-xl); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .vehicle-banner__meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: var(--fs-xs); }
+  .vmeta-tag { background: rgba(255,255,255,0.12); border-radius: 6px; padding: 3px 9px; font-family: var(--font-mono); font-size: 11px; }
+  .vmeta-tag--odo { background: rgba(99,102,241,0.3); color: #c7d2fe; }
+
+  .form-card { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); padding: 22px; margin-bottom: 16px; }
+  .form-card__title { font-weight: 700; color: var(--ink-900); margin-bottom: 16px; font-size: var(--fs-lg); }
+
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 8px; }
+  .svc-opt { position: relative; }
+  .svc-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .svc-opt label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--paper-150); background: var(--paper-0);
+    font-size: var(--fs-sm); cursor: pointer; user-select: none;
+    transition: all var(--dur); line-height: 1.3;
+  }
+  .svc-opt label::before {
+    content: ''; width: 16px; height: 16px; border-radius: 5px; flex-shrink: 0;
+    border: 1.5px solid var(--paper-300); background: var(--paper-0);
+    transition: all var(--dur-fast);
+  }
+  .svc-opt input:checked + label { border-color: var(--brand-400); background: var(--brand-50); }
+  .svc-opt input:checked + label::before { background: var(--brand-600); border-color: var(--brand-600); box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 8px var(--brand-600); }
+
+  /* Success screen */
+  .success-screen {
+    display: none; text-align: center;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-2xl);
+    padding: 48px 28px; margin-top: 24px;
+  }
+  .success-screen.show { display: block; }
+  .score-big { width: 100px; height: 100px; border-radius: 50%; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .score-big__num { font-family: var(--font-mono); font-size: 28px; font-weight: 800; line-height: 1; }
+  .score-big__lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;background:var(--paper-50);">
+<header style="background:var(--paper-0);border-bottom:var(--border-hair);padding:0 20px;">
+  <div style="max-width:640px;margin:0 auto;height:60px;display:flex;align-items:center;gap:12px;">
+    <a class="brand" href="/app/mechanic/dashboard.html"><span class="brand__mark">A</span><span>AutoCare</span></a>
+    <div style="flex:1;"></div>
+    <a class="btn btn--ghost btn--sm" href="/app/mechanic/scan.html">← Scan</a>
+  </div>
+</header>
+
+<main class="ls">
+  <div id="vehicle-info" class="am-rise">
+    <div style="text-align:center;padding:32px;color:var(--paper-400);">Loading vehicle…</div>
+  </div>
+
+  <form id="ls-form" novalidate style="display:none;">
+    <div class="form-card am-rise" data-d="1">
+      <div class="form-card__title">Services performed</div>
+      <div class="service-grid" id="service-grid">
+        <!-- injected by JS -->
+      </div>
+      <div id="other-wrap" style="display:none;margin-top:12px;">
+        <input id="other-text" class="input" type="text" placeholder="Describe the service…">
+      </div>
+    </div>
+
+    <div class="form-card am-rise" data-d="2">
+      <div class="form-card__title">Details</div>
+      <div class="col" style="gap:14px;">
+        <div class="field">
+          <label class="field__label" for="ls-odo">Current odometer reading (km) *</label>
+          <input id="ls-odo" class="input" type="number" inputmode="numeric" placeholder="e.g. 48500" min="0" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="ls-notes">Notes <span style="color:var(--paper-400);font-weight:400;">(optional)</span></label>
+          <textarea id="ls-notes" class="input" rows="3" placeholder="Parts replaced, issues found, recommendations…" style="resize:vertical;"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" for="ls-cost">Cost <span style="color:var(--paper-400);font-weight:400;">(optional)</span></label>
+          <div class="input-affix">
+            <span class="input-affix__lead">₨</span>
+            <input id="ls-cost" class="input" type="number" inputmode="numeric" placeholder="e.g. 5000" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ls-error" style="display:none;padding:12px 14px;background:var(--bad-50);border:1px solid var(--bad-100);border-radius:10px;color:var(--bad-700);font-size:var(--fs-sm);margin-bottom:16px;"></div>
+
+    <button class="btn btn--primary btn--lg btn--block am-rise" data-d="3" type="submit">
+      Save service record
+      <span data-icon="check" data-size="16"></span>
+    </button>
+  </form>
+
+  <!-- Success screen -->
+  <div class="success-screen" id="success-screen">
+    <div class="score-big" id="score-circle">
+      <div class="score-big__num" id="score-num">—</div>
+      <div class="score-big__lbl">Health</div>
+    </div>
+    <h2 style="font-size:var(--fs-2xl);letter-spacing:-0.02em;margin-bottom:8px;">Service logged ✓</h2>
+    <p style="color:var(--paper-500);font-size:var(--fs-sm);line-height:1.6;margin-bottom:28px;" id="success-sub">Record saved and health score updated.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <a class="btn btn--primary" href="/app/mechanic/scan.html">Scan another QR</a>
+      <a class="btn btn--ghost" href="/app/mechanic/dashboard.html">Dashboard →</a>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+
+const SERVICE_TYPES = [
+  'Oil change','Oil filter','Air filter','Brake pads','Brake discs',
+  'Tyres','Battery','Coolant','Transmission fluid','Spark plugs',
+  'Timing belt','AC service','Wheel alignment','General inspection','Other'
+];
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  if (!user) { window.location.href = '/app/login.html'; return; }
+
+  const { data: mp } = await supabase.from('mechanic_profiles').select('*').eq('user_id', user.id).maybeSingle();
+  if (!mp || mp.status !== 'approved') { window.location.href = '/app/mechanic/verify.html'; return; }
+
+  const params = new URLSearchParams(window.location.search);
+  const vehicleId = params.get('vehicle');
+  if (!vehicleId) { window.location.href = '/app/mechanic/scan.html'; return; }
+
+  // Load vehicle + recent logs
+  const [{ data: vehicle }, { data: existingLogs }] = await Promise.all([
+    supabase.from('vehicles').select('*').eq('id', vehicleId).maybeSingle(),
+    supabase.from('service_logs').select('logged_at, odometer_at_service').eq('vehicle_id', vehicleId).order('logged_at', { ascending: false }).limit(10)
+  ]);
+
+  if (!vehicle) { window.location.href = '/app/mechanic/scan.html'; return; }
+
+  const lastLog = existingLogs?.[0];
+  const lastServiceDate = lastLog ? new Date(lastLog.logged_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
+
+  document.getElementById('vehicle-info').innerHTML = `
+    <div class="vehicle-banner am-rise">
+      <div class="vehicle-banner__title">${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.variant ? ' ' + vehicle.variant : ''}</div>
+      <div class="vehicle-banner__meta">
+        ${vehicle.color ? `<span class="vmeta-tag">${vehicle.color}</span>` : ''}
+        ${vehicle.registration_number ? `<span class="vmeta-tag">${vehicle.registration_number}</span>` : ''}
+        ${vehicle.current_odometer ? `<span class="vmeta-tag vmeta-tag--odo">${vehicle.current_odometer.toLocaleString()} km on record</span>` : ''}
+        ${lastServiceDate ? `<span class="vmeta-tag" style="background:rgba(255,255,255,0.12);">Last service: ${lastServiceDate}</span>` : '<span class="vmeta-tag" style="background:rgba(255,255,255,0.12);">No prior service</span>'}
+      </div>
+    </div>`;
+
+  // Build service type checkboxes
+  const grid = document.getElementById('service-grid');
+  SERVICE_TYPES.forEach(type => {
+    const wrap = document.createElement('div');
+    wrap.className = 'svc-opt';
+    const id = 'svc-' + type.replace(/\s+/g, '-').toLowerCase();
+    wrap.innerHTML = `<input type="checkbox" id="${id}" value="${type}"><label for="${id}">${type}</label>`;
+    grid.appendChild(wrap);
+  });
+  document.getElementById('svc-other')?.closest('.svc-opt')?.querySelector('input')?.addEventListener('change', e => {
+    document.getElementById('other-wrap').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  document.getElementById('ls-form').style.display = '';
+
+  function showError(msg) {
+    const el = document.getElementById('ls-error');
+    el.textContent = msg; el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function calcHealthScore(logs, isStolen) {
+    if (!logs.length) return isStolen ? 0 : 10;
+    let score = 40;
+
+    // +20 if serviced in last 3 months
+    const threeMonthsAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+    if (new Date(logs[0].logged_at).getTime() > threeMonthsAgo) score += 20;
+
+    // +20 if last 3 odometer readings are increasing (no rollback)
+    const last3 = logs.slice(0, 3).map(l => l.odometer_at_service).filter(o => o != null);
+    if (last3.length >= 2) {
+      const increasing = last3.every((o, i) => i === 0 || o < last3[i - 1]);
+      if (increasing) score += 20;
+    } else if (last3.length === 1) {
+      score += 20; // only one reading, assume fine
+    }
+
+    // +10 if 5+ total logs
+    if (logs.length >= 5) score += 10;
+
+    // +10 if not stolen
+    if (!isStolen) score += 10;
+
+    return Math.min(score, 100);
+  }
+
+  document.getElementById('ls-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const checked = [...document.querySelectorAll('#service-grid input:checked')].map(i => i.value);
+    const otherText = document.getElementById('other-text').value.trim();
+    const serviceTypes = checked.map(t => t === 'Other' && otherText ? otherText : t).filter(Boolean);
+
+    const odoVal = parseInt(document.getElementById('ls-odo').value);
+    const notes  = document.getElementById('ls-notes').value.trim() || null;
+    const costPkr = parseFloat(document.getElementById('ls-cost').value);
+    const costMinor = isNaN(costPkr) ? null : Math.round(costPkr * 100);
+
+    if (!serviceTypes.length) { showError('Select at least one service type.'); return; }
+    if (!odoVal || odoVal < 0) { showError('Enter the current odometer reading.'); return; }
+
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    const { error } = await supabase.from('service_logs').insert({
+      vehicle_id:          vehicleId,
+      mechanic_id:         mp.id,
+      service_types:       serviceTypes,
+      odometer_at_service: odoVal,
+      notes,
+      cost_pkr:            costMinor
+    });
+
+    if (error) {
+      showError('Failed to save: ' + error.message);
+      btn.disabled = false; btn.textContent = 'Save service record';
+      return;
+    }
+
+    // Update vehicle odometer
+    await supabase.from('vehicles').update({ current_odometer: odoVal }).eq('id', vehicleId);
+
+    // Load all logs to calculate health score
+    const { data: allLogs } = await supabase
+      .from('service_logs')
+      .select('logged_at, odometer_at_service')
+      .eq('vehicle_id', vehicleId)
+      .order('logged_at', { ascending: false });
+
+    const score = calcHealthScore(allLogs || [], vehicle.is_stolen);
+
+    const breakdown = {
+      has_logs:      (allLogs?.length || 0) > 0,
+      recent_service: score >= 60,
+      odo_ok:        true,
+      five_plus_logs: (allLogs?.length || 0) >= 5,
+      not_stolen:    !vehicle.is_stolen
+    };
+
+    await supabase.from('health_scores').upsert({
+      vehicle_id:    vehicleId,
+      score,
+      breakdown,
+      calculated_at: new Date().toISOString()
+    }, { onConflict: 'vehicle_id' });
+
+    // Show success
+    document.getElementById('ls-form').style.display = 'none';
+    const successEl = document.getElementById('success-screen');
+    successEl.classList.add('show');
+
+    const scoreNum = document.getElementById('score-num');
+    const scoreCircle = document.getElementById('score-circle');
+    scoreNum.textContent = score;
+    document.getElementById('success-sub').textContent = `Service record saved. Vehicle health score: ${score}/100`;
+
+    if (score >= 70) {
+      scoreCircle.style.cssText = 'background:#dcfce7;border:3px solid #86efac;width:100px;height:100px;border-radius:50%;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;';
+      scoreNum.style.color = '#15803d';
+    } else if (score >= 40) {
+      scoreCircle.style.cssText = 'background:#fefce8;border:3px solid #fde68a;width:100px;height:100px;border-radius:50%;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;';
+      scoreNum.style.color = '#92400e';
+    } else {
+      scoreCircle.style.cssText = 'background:#fef2f2;border:3px solid #fca5a5;width:100px;height:100px;border-radius:50%;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;';
+      scoreNum.style.color = '#dc2626';
+    }
+
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(document.getElementById('success-screen'));
+  });
+})();
+</script>
+</body>
+</html>

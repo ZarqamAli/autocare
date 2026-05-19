@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Car listing · AutoMart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .ld-layout {
+    display: grid; gap: 32px; grid-template-columns: 1fr;
+    max-width: var(--container); margin: 0 auto; padding: 24px 24px 96px;
+  }
+  @media (min-width: 980px) { .ld-layout { grid-template-columns: 1fr 380px; } }
+  .breadcrumbs { font-size: var(--fs-sm); color: var(--paper-500); margin-bottom: 12px; }
+  .breadcrumbs a { color: var(--paper-700); }
+  .breadcrumbs a:hover { color: var(--brand-700); }
+  .ld-title { font-size: clamp(28px, 3.4vw, 40px); letter-spacing:-0.025em; }
+  .ld-title em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .ld-meta-row { display: flex; flex-wrap: wrap; gap: 8px; color: var(--paper-500); font-size: var(--fs-sm); margin: 8px 0 18px; align-items: center; }
+  .ld-meta-row strong { color: var(--ink-900); font-weight: 700; }
+
+  .specs {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+    background: var(--paper-150); border: var(--border-hair); border-radius: var(--r-lg); overflow: hidden;
+  }
+  @media (min-width: 720px) { .specs { grid-template-columns: repeat(4, 1fr); } }
+  .spec { background: var(--paper-0); padding: 16px 18px; }
+  .spec__lbl { font-size: 11px; color: var(--paper-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .spec__val { font-weight: 700; color: var(--ink-900); margin-top: 4px; font-size: var(--fs-md); display: flex; align-items: center; gap: 6px; }
+
+  .seller-card {
+    display: flex; align-items: center; gap: 14px; padding: 16px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+  }
+  .seller-card__avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #2563eb); color:#fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .star-row { display: inline-flex; align-items: center; gap: 4px; color: var(--warn-500); }
+
+  .gauge-card {
+    background: linear-gradient(180deg, #fff, var(--brand-50));
+    border: 1px solid var(--brand-100); border-radius: var(--r-lg);
+    padding: 22px;
+  }
+  .price-band {
+    display: flex; align-items: end; gap: 10px; margin-top: 8px;
+  }
+  .price-band__main {
+    font-family: var(--font-mono); font-size: 38px; font-weight: 700;
+    letter-spacing: -0.025em; color: var(--ink-900); line-height: 1;
+  }
+  .price-band__cmp { font-size: var(--fs-sm); color: var(--paper-500); padding-bottom: 4px; }
+  .price-band__cmp strong { color: var(--ok-700); font-weight: 700; }
+
+  .sticky-cta {
+    position: sticky; top: calc(var(--header-h) + 16px);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .cta-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    padding: 20px; box-shadow: var(--shadow-md);
+  }
+  .factor {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px dashed var(--paper-150);
+    font-size: var(--fs-sm);
+  }
+  .factor:last-child { border-bottom: none; }
+  .factor__lbl { color: var(--paper-700); display: flex; align-items: center; gap: 8px; }
+  .factor__val { font-family: var(--font-mono); font-weight: 600; color: var(--ink-900); }
+  .factor__val--ok { color: var(--ok-600); }
+  .factor__val--warn { color: var(--warn-600); }
+  .hs-ring { width:72px; height:72px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:3px solid var(--paper-150); flex-shrink:0; }
+  .hs-ring.good { border-color:#86efac; background:#f0fdf4; }
+  .hs-ring.blue { border-color:#93c5fd; background:#eff6ff; }
+  .hs-ring.ok   { border-color:#fde68a; background:#fefce8; }
+  .hs-ring.bad  { border-color:#fca5a5; background:#fef2f2; }
+  .hs-ring__num { font-family:var(--font-mono); font-size:20px; font-weight:800; line-height:1; }
+  .hs-ring__lbl { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--paper-500); margin-top:2px; }
+  .slog-row { padding:12px 0; border-bottom:1px solid var(--paper-100); }
+  .slog-row:last-child { border-bottom:none; }
+  .slog-row__date { font-family:var(--font-mono); font-size:11px; color:var(--paper-400); margin-bottom:4px; }
+  .slog-row__shop { font-weight:700; font-size:var(--fs-sm); color:var(--ink-900); margin-bottom:4px; }
+  .slog-chip { display:inline-flex; background:var(--brand-50); color:var(--brand-700); border:1px solid var(--brand-100); border-radius:20px; padding:2px 8px; font-size:10px; font-weight:600; margin:0 3px 3px 0; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/buyer/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="app-search hide-mobile">
+      <span data-icon="search" data-size="16" style="color:var(--paper-500)"></span>
+      <input type="search" placeholder="Search…">
+    </div>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link" href="/app/buyer/index.html">Browse</a>
+      <a class="appbar__link" href="/app/buyer/ai.html">AI Search</a>
+      <a class="appbar__link" href="/app/buyer/saved.html">Saved</a>
+      <a class="appbar__link" href="/app/seller/index.html">Sell a car</a>
+    </nav>
+    <div class="appbar__right">
+      <a class="iconbtn" href="/app/chat/index.html" aria-label="Messages">
+        <span data-icon="chat" data-size="18"></span>
+        <span class="iconbtn__badge" style="display:none;"></span>
+      </a>
+      <a href="/app/buyer/account.html" class="avatar">A</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="ld-layout">
+    <article>
+      <div class="breadcrumbs am-rise" data-d="1">
+        <a href="/app/buyer/index.html">Browse</a>
+      </div>
+
+      <div class="row gap-2 am-rise" data-d="1" style="margin-bottom:6px;"></div>
+
+      <h1 class="ld-title am-rise" data-d="2"></h1>
+      <div class="ld-meta-row am-rise" data-d="2"></div>
+
+      <div class="gallery am-rise" data-d="3"></div>
+
+      <h3 class="mt-8 am-rise" data-d="4" style="font-size:var(--fs-xl); margin-bottom:12px;">Specs at a glance</h3>
+      <div class="specs am-rise" data-d="4"></div>
+
+      <h3 class="mt-8 am-rise" data-d="5" style="font-size:var(--fs-xl); margin-bottom:12px;">Description</h3>
+      <div class="card card-body am-rise" data-d="5" style="line-height:1.65; color:var(--paper-700);"></div>
+
+      <h3 class="mt-8 am-rise" data-d="6" style="font-size:var(--fs-xl); margin-bottom:12px;">Seller</h3>
+      <div class="seller-card am-rise" data-d="6"></div>
+
+      <div id="history-section" style="display:none;" class="am-rise" data-d="7"></div>
+    </article>
+
+    <!-- Sticky CTA rail -->
+    <aside class="sticky-cta">
+      <div class="gauge-card am-rise" data-d="2">
+        <div class="row gap-2" style="margin-bottom:4px;">
+          <span class="kicker">Asking price</span>
+        </div>
+        <div class="price-band">
+          <span class="price-band__main"></span>
+        </div>
+      </div>
+
+      <div id="health-card" style="display:none;" class="am-rise" data-d="3"></div>
+
+      <div class="cta-card am-rise" data-d="3">
+        <button class="btn btn--primary btn--lg btn--block">
+          <span data-icon="chat" data-size="18"></span>
+          Chat with seller
+        </button>
+        <button class="btn btn--ghost btn--lg btn--block mt-2">
+          <span data-icon="rupee" data-size="18"></span>
+          Make an offer
+        </button>
+        <div class="row gap-2 mt-3" style="font-size:11px; color:var(--paper-500);">
+          <span data-icon="shield" data-size="13" style="color:var(--ok-600)"></span>
+          Escrow protection up to PKR 1 Cr · 0% fees
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/buyer/index.html"><span data-icon="home" data-size="20"></span>Browse</a>
+  <a href="/app/buyer/ai.html"><span data-icon="sparkle" data-size="20"></span>AI</a>
+  <a href="/app/chat/index.html" style="position:relative;"><span data-icon="chat" data-size="20"></span>Chats<span class="tabbar__badge" style="display:none;"></span></a>
+  <a href="/app/buyer/saved.html"><span data-icon="heart" data-size="20"></span>Saved</a>
+  <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile, formatPKR, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  // Listing detail is a public page — do NOT redirect unauthenticated visitors.
+  // We still fetch the session so we can personalise (favourites, self-edit CTA, chat).
+  const { data: { session } } = await supabase.auth.getSession();
+  document.body.style.visibility = '';
+
+const SUPABASE_URL = 'https://zthsfeivxjwenrjxykwj.supabase.co';
+function resolvePhoto(url, storagePath) {
+  const raw = storagePath || url;
+  if (!raw) return 'https://placehold.co/400x300?text=No+Photo';
+  if (raw.startsWith('http')) return raw;
+  const path = raw.startsWith('/') ? raw.slice(1) : raw;
+  return `${SUPABASE_URL}/storage/v1/object/public/listings/${path}`;
+}
+
+function formatL(minor) {
+  const pkr=minor/100;
+  if(pkr>=10000000) return 'PKR '+(pkr/10000000).toFixed(2)+'Cr';
+  return 'PKR '+(pkr/100000).toFixed(1)+'L';
+}
+
+const params = new URLSearchParams(window.location.search);
+const listingId = params.get('id');
+if (!listingId) {
+  document.body.style.visibility = '';
+  document.querySelector('main').innerHTML = '<p style="padding:48px;text-align:center;color:var(--paper-500);">No listing ID provided.</p>';
+  return;
+}
+
+const user = await getCurrentUser();
+const profile = await getUserProfile();
+initUnreadBadge('.iconbtn__badge, .tabbar__badge');
+
+// Load listing + photos + seller info
+const { data: listing, error: listingError } = await supabase
+  .from('listings')
+  .select('*, listing_photos(id, url, storage_path, is_primary, display_order), profiles!listings_seller_id_fkey(id, display_name, avatar_url, created_at)')
+  .eq('id', listingId)
+  .maybeSingle();
+
+if (!listing) { document.querySelector('main').innerHTML = `<p style="padding:48px;text-align:center;color:var(--paper-500);">Listing not found. ${listingError?.message||''}</p>`; }
+else {
+  const seller = listing.profiles || {};
+  const [{ data: sp }, { data: sellerRevs }] = await Promise.all([
+    supabase.from('seller_profiles').select('verification_status, seller_type').eq('user_id', listing.seller_id).maybeSingle(),
+    supabase.from('reviews').select('rating').eq('reviewee_id', listing.seller_id)
+  ]);
+  const sellerAvg = sellerRevs?.length ? (sellerRevs.reduce((s,r)=>s+r.rating,0)/sellerRevs.length).toFixed(1) : null;
+  const isVerified = sp?.verification_status === 'approved';
+  const isDealer = sp?.seller_type === 'dealer';
+  const isSelf = listing.seller_id === user?.id;
+
+  // Update title
+  document.title = `${listing.year} ${listing.make} ${listing.model}${listing.variant?' '+listing.variant:''} · AutoMart`;
+
+  // Update breadcrumbs
+  document.querySelector('.breadcrumbs').innerHTML = `<a href="/app/buyer/index.html">Browse</a> &nbsp;›&nbsp; <a href="#">${listing.make}</a> &nbsp;›&nbsp; <a href="#">${listing.model}</a> &nbsp;›&nbsp; <span style="color:var(--ink-900)">${listing.model}${listing.variant?' '+listing.variant:''} · ${listing.year}</span>`;
+
+  // Listing number + pills
+  const pilsRow = document.querySelector('.row.gap-2.am-rise[data-d="1"]');
+  pilsRow.innerHTML = `<span class="kicker">Listing #${listing.id.slice(0,8).toUpperCase()}</span>${isVerified ? '<span class="pill pill--ok"><span data-icon="verified" data-size="12"></span> Verified seller</span>' : ''}${isDealer ? '<span class="pill pill--brand">Dealer</span>' : ''}`;
+
+  // Title
+  document.querySelector('.ld-title').innerHTML = `${listing.year} ${listing.make} <em>${listing.model}${listing.variant?' '+listing.variant:''}</em>`;
+
+  // Meta row
+  document.querySelector('.ld-meta-row').innerHTML = `
+    <span><span data-icon="pin" data-size="14"></span> ${listing.city||'Pakistan'}</span>
+    <span>·</span><span><strong>${(listing.mileage||0).toLocaleString()} km</strong></span>
+    <span>·</span><span>${listing.fuel_type||''} · ${listing.transmission||''}</span>
+    <span>·</span><span>Listed ${new Date(listing.created_at).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'})}</span>
+    <span style="margin-left:auto;display:flex;gap:6px;">
+      <button class="iconbtn" aria-label="Share"><span data-icon="arrow-up-r" data-size="16"></span></button>
+      <button class="iconbtn" id="fav-btn" aria-label="Save"><span data-icon="heart" data-size="16"></span></button>
+      <button class="iconbtn" id="report-btn" aria-label="Report"><span data-icon="flag" data-size="16"></span></button>
+    </span>`;
+
+  // Gallery
+  const photos = (listing.listing_photos||[]).sort((a,b)=>(a.display_order||0)-(b.display_order||0));
+  const primaryUrl = resolvePhoto(listing.primary_photo_url, photos[0]?.storage_path || photos[0]?.url);
+  if (photos.length > 0) {
+    document.querySelector('.gallery').innerHTML = photos.slice(0,3).map((p,i) => {
+      const src = resolvePhoto(p.url, p.storage_path || p.url);
+      return `<div class="imgslot"><img src="${src}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"><span class="imgslot__hint">${i===0?`<span data-icon="cam" data-size="12"></span> 1 / ${photos.length}`:''}</span></div>`;
+    }).join('');
+  } else {
+    document.querySelector('.gallery').innerHTML = `<div class="imgslot"><img src="${primaryUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`;
+  }
+
+  // Specs
+  document.querySelector('.specs').innerHTML = [
+    ['Year', listing.year],
+    ['Mileage', (listing.mileage||0).toLocaleString()+' km'],
+    ['Transmission', listing.transmission||'—'],
+    ['Fuel', listing.fuel_type||'—'],
+    ['Condition', listing.condition||'Used'],
+    ['Assembly', listing.assembly||'—'],
+    ['Color', listing.color||'—'],
+    ['Registered', listing.city||'—'],
+    ['Body type', listing.body_type||'—'],
+    ['Owners', listing.ownership_count ? listing.ownership_count+' owner(s)':'—'],
+    ['Accident history', listing.accident_history||'None'],
+  ].map(([l,v]) => `<div class="spec"><div class="spec__lbl">${l}</div><div class="spec__val">${v}</div></div>`).join('');
+
+  // Description
+  document.querySelector('.card.card-body').innerHTML = `<p>${listing.description||'No description provided.'}</p>`;
+
+  // Seller card
+  const sellerInitials = (seller.display_name||'S').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const memberYear = seller.created_at ? new Date(seller.created_at).getFullYear() : '—';
+  const ratingLine = sellerAvg
+    ? `<span style="color:#f59e0b;">★</span> ${sellerAvg} <span>(${sellerRevs.length} reviews)</span> ·`
+    : '';
+  document.querySelector('.seller-card').innerHTML = `
+    <div class="seller-card__avatar">${sellerInitials}</div>
+    <div style="flex:1;">
+      <div style="font-weight:700;color:var(--ink-900);display:flex;align-items:center;gap:6px;">
+        ${seller.display_name||'Seller'}
+        ${isVerified ? '<span class="pill pill--ok" style="height:22px;"><span data-icon="verified" data-size="11"></span> Verified</span>' : ''}
+        ${isDealer ? '<span class="pill pill--brand" style="height:22px;">Dealer</span>' : ''}
+      </div>
+      <div style="font-size:var(--fs-sm);color:var(--paper-500);display:flex;align-items:center;gap:6px;">${ratingLine} Member since ${memberYear}</div>
+    </div>`;
+
+  // Price card (right rail)
+  document.querySelector('.price-band__main').textContent = formatL(listing.price_minor);
+
+  // CTA buttons
+  const ctaCard = document.querySelector('.cta-card');
+  if (listing.status === 'sold') {
+    ctaCard.innerHTML = `<div style="text-align:center;padding:16px 0;">
+      <div style="font-size:1.5rem;margin-bottom:8px;">🚗</div>
+      <div style="font-weight:700;color:var(--ink-500);font-size:var(--fs-lg);">This car has been sold</div>
+      <p style="color:var(--paper-500);margin:6px 0 0;font-size:var(--fs-sm);">This listing is no longer available.</p>
+    </div>`;
+  } else if (isSelf) {
+    ctaCard.innerHTML = `<a href="/app/seller/new.html?id=${listingId}" class="btn btn--ghost btn--lg btn--block">Edit this listing</a>`;
+  } else {
+    async function getOrCreateConv() {
+      let { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('listing_id', listingId)
+        .eq('buyer_id', user.id)
+        .maybeSingle();
+      if (!existing) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .insert({ listing_id: listingId, buyer_id: user.id, seller_id: listing.seller_id, status: 'active' })
+          .select('id').single();
+        existing = conv;
+      }
+      return existing;
+    }
+
+    ctaCard.querySelector('.btn--primary').addEventListener('click', async () => {
+      if (!user) { window.location.replace('/app/login.html'); return; }
+      const conv = await getOrCreateConv();
+      if (conv?.id) { window.location.href = `/app/chat/detail.html?id=${conv.id}`; }
+    });
+
+    ctaCard.querySelector('.btn--ghost').addEventListener('click', async () => {
+      if (!user) { window.location.replace('/app/login.html'); return; }
+      const conv = await getOrCreateConv();
+      if (conv?.id) { window.location.href = `/app/chat/detail.html?id=${conv.id}#offer`; }
+    });
+  }
+
+  // Favorite button
+  if (user && !isSelf) {
+    const { data: fav } = await supabase.from('favorites').select('listing_id').eq('user_id', user.id).eq('listing_id', listingId).maybeSingle();
+    const favBtn = document.getElementById('fav-btn');
+    if (fav) favBtn.querySelector('span').setAttribute('data-icon','heart-fill');
+    favBtn?.addEventListener('click', async () => {
+      const hasFav = favBtn.querySelector('span').getAttribute('data-icon') === 'heart-fill';
+      if (hasFav) {
+        await supabase.from('favorites').delete().eq('user_id', user.id).eq('listing_id', listingId);
+        favBtn.querySelector('span').setAttribute('data-icon','heart');
+      } else {
+        await supabase.from('favorites').insert({ user_id: user.id, listing_id: listingId });
+        favBtn.querySelector('span').setAttribute('data-icon','heart-fill');
+      }
+      favBtn.querySelector('span').dataset.iconMounted=''; favBtn.querySelector('span').innerHTML='';
+      if(typeof AMIcon!=='undefined') AMIcon.mount(favBtn);
+    });
+  }
+
+  // Report button — inline modal
+  document.getElementById('report-btn')?.addEventListener('click', () => {
+    if (!user) return;
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;';
+    ov.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <h3 style="margin:0 0 4px;font-size:var(--fs-lg);">Report this listing</h3>
+      <p style="font-size:var(--fs-sm);color:var(--paper-500);margin:0 0 14px;">Reviews are handled within 24 hours.</p>
+      <label class="field__label" for="rp-r">Reason</label>
+      <select id="rp-r" class="select" style="margin-bottom:10px;">
+        <option value="">Select reason…</option>
+        <option value="scam">Potential scam</option>
+        <option value="wrong_info">Wrong / misleading info</option>
+        <option value="duplicate">Duplicate listing</option>
+        <option value="wrong_price">Price manipulation</option>
+        <option value="inappropriate">Inappropriate content</option>
+        <option value="other">Other</option>
+      </select>
+      <label class="field__label" for="rp-d">Details (optional)</label>
+      <textarea id="rp-d" class="input" style="resize:none;height:72px;margin-bottom:14px;" placeholder="Any additional context…"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn--ghost btn--sm" id="rp-cancel">Cancel</button>
+        <button class="btn btn--primary btn--sm" id="rp-submit" style="margin-left:auto;">Submit report</button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e => { if (e.target === ov) document.body.removeChild(ov); });
+    document.getElementById('rp-cancel').onclick = () => document.body.removeChild(ov);
+    document.getElementById('rp-submit').onclick = async () => {
+      const reason = document.getElementById('rp-r').value;
+      if (!reason) { document.getElementById('rp-r').style.borderColor = '#dc2626'; return; }
+      const details = document.getElementById('rp-d').value.trim();
+      await supabase.from('reports').insert({ reporter_id: user.id, target_type: 'listing', target_id: listingId, reason, details, status: 'open' });
+      ov.querySelector('div').innerHTML = `<div style="text-align:center;padding:20px;">
+        <div style="font-size:40px;margin-bottom:12px;">✓</div>
+        <h3>Report submitted</h3>
+        <p style="color:var(--paper-500);font-size:var(--fs-sm);">Our team will review within 24 hours.</p>
+        <button class="btn btn--ghost btn--sm" style="margin-top:16px;" id="rp-close">Close</button>
+      </div>`;
+      document.getElementById('rp-close').onclick = () => document.body.removeChild(ov);
+    };
+  });
+
+  // AI price insight
+  try {
+    const { data: insight } = await supabase.functions.invoke('gemini-price-insight', { body: { ...listing } });
+    if (insight) {
+      const gaugeCard = document.querySelector('.gauge-card');
+      gaugeCard.querySelector('.price-band__cmp').innerHTML = insight.percentage
+        ? `<strong style="color:${parseFloat(insight.percentage)<0?'var(--ok-700)':'var(--warn-600)'}">${insight.percentage}%</strong> ${parseFloat(insight.percentage)<0?'below':'above'} market`
+        : '';
+      const factorsEl = gaugeCard.querySelector('.mt-6');
+      if (insight.reason && factorsEl) {
+        factorsEl.innerHTML = `<div class="factor"><span class="factor__lbl">AI assessment</span><span class="factor__val ${insight.assessment==='good_deal'?'factor__val--ok':insight.assessment==='overpriced'?'factor__val--warn':''}">${insight.assessment?.replace(/_/g,' ')||'—'}</span></div><div style="font-size:var(--fs-sm);color:var(--paper-700);padding-top:8px;line-height:1.5;">${insight.reason}</div>`;
+      }
+    }
+  } catch(_) {}
+
+  // Health score + service history (if vehicle linked)
+  if (listing.vehicle_id) {
+    const [{ data: hs }, { data: svcLogs }, { data: vehicleRow }] = await Promise.all([
+      supabase.from('health_scores').select('*').eq('vehicle_id', listing.vehicle_id).maybeSingle(),
+      supabase.from('service_logs')
+        .select('logged_at, service_types, odometer_at_service, mechanic_profiles!service_logs_mechanic_id_fkey(workshop_name, city)')
+        .eq('vehicle_id', listing.vehicle_id)
+        .order('logged_at', { ascending: false })
+        .limit(3),
+      supabase.from('vehicles').select('qr_code_uuid').eq('id', listing.vehicle_id).maybeSingle()
+    ]);
+
+    function hsClass(s) { return s >= 86 ? 'good' : s >= 66 ? 'blue' : s >= 41 ? 'ok' : 'bad'; }
+    function hsColor(s) { return s >= 86 ? '#15803d' : s >= 66 ? '#1d4ed8' : s >= 41 ? '#92400e' : '#dc2626'; }
+    function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-PK', { day:'numeric', month:'short', year:'numeric' }); }
+
+    if (hs) {
+      const hc = document.getElementById('health-card');
+      const bd = hs.breakdown || {};
+      hc.style.display = '';
+      hc.innerHTML = `<div style="background:var(--paper-0);border:var(--border-hair);border-radius:var(--r-lg);padding:20px;">
+        <div style="font-weight:700;font-size:var(--fs-md);margin-bottom:14px;color:var(--ink-900);">Vehicle Health</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <div class="hs-ring ${hsClass(hs.score)}">
+            <div class="hs-ring__num" style="color:${hsColor(hs.score)}">${hs.score}</div>
+            <div class="hs-ring__lbl">/ 100</div>
+          </div>
+          <div style="font-size:var(--fs-sm);color:var(--paper-600);line-height:1.6;">
+            ${hs.score >= 70 ? 'Good condition — regular service history.' : hs.score >= 40 ? 'Average — some gaps in service history.' : 'Poor — limited or irregular service records.'}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--paper-600);">
+          ${[
+            ['Has service records', bd.has_logs],
+            ['Serviced in last 3 months', bd.recent_service],
+            ['Odometer readings valid', bd.odo_ok],
+            ['5+ service logs', bd.five_plus_logs],
+            ['Not reported stolen', bd.not_stolen]
+          ].map(([l,v]) => `<div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:${v?'#15803d':'#dc2626'};font-size:13px;">${v?'✓':'✗'}</span>${l}
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    if (svcLogs?.length) {
+      const hs2 = document.getElementById('history-section');
+      hs2.style.display = '';
+      const passportUrl = `/app/service-passport.html?vehicle=${vehicleRow?.qr_code_uuid || listing.vehicle_id}`;
+      hs2.innerHTML = `<h3 style="font-size:var(--fs-xl);margin:24px 0 12px;">Service History</h3>
+        <div style="background:var(--paper-0);border:var(--border-hair);border-radius:var(--r-lg);padding:4px 20px;">
+          ${svcLogs.map(log => {
+            const shop = log.mechanic_profiles?.workshop_name || 'Verified Mechanic';
+            const city = log.mechanic_profiles?.city ? ' · ' + log.mechanic_profiles.city : '';
+            const chips = (log.service_types || []).map(t => `<span class="slog-chip">${t}</span>`).join('');
+            const odo = log.odometer_at_service ? `${log.odometer_at_service.toLocaleString()} km` : '';
+            return `<div class="slog-row">
+              <div class="slog-row__date">${fmtDate(log.logged_at)}${odo ? ' · ' + odo : ''}</div>
+              <div class="slog-row__shop">${shop}${city}</div>
+              ${chips ? `<div style="margin-top:4px;">${chips}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-top:10px;text-align:right;">
+          <a href="${passportUrl}" target="_blank" class="btn btn--ghost btn--sm">View full service passport →</a>
+        </div>`;
+    }
+  }
+
+  // Increment views (fire-and-forget)
+  supabase.from('listings').update({ views_count: (listing.views_count||0)+1 }).eq('id', listingId).then(()=>{});
+
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(document.body);
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Messages · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .inbox { max-width: 760px; margin: 0 auto; padding: 28px 16px 96px; }
+  .inbox-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .filters { display: flex; gap: 6px; padding: 4px; background: var(--paper-100); border-radius: var(--r-pill); margin-bottom: 14px; width: fit-content; }
+  .filters button { padding: 7px 16px; border-radius: 999px; font-size: var(--fs-sm); font-weight: 600; color: var(--paper-700); }
+  .filters button[aria-current="true"] { background: var(--paper-0); color: var(--ink-900); box-shadow: var(--shadow-sm); }
+  .thread {
+    display: flex; gap: 14px; padding: 16px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    transition: background var(--dur), box-shadow var(--dur);
+  }
+  .thread + .thread { margin-top: 10px; }
+  .thread:hover { background: var(--paper-50); box-shadow: var(--shadow-sm); }
+  .thread--unread { background: var(--brand-50); border-color: #c7d2fe; }
+  .thread--unread:hover { background: #e0e7ff; }
+  .thread__thumb { width: 76px; height: 60px; border-radius: 10px; flex-shrink: 0; overflow: hidden; }
+  .thread__thumb .imgslot { border-radius: 0; height: 100%; }
+  .thread__main { flex: 1; min-width: 0; }
+  .thread__top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .thread__name { font-weight: 700; color: var(--ink-900); font-size: var(--fs-md); }
+  .thread__car { color: var(--paper-500); font-size: var(--fs-xs); margin-bottom: 4px; truncate: 1; }
+  .thread__msg { font-size: var(--fs-sm); color: var(--paper-700); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .thread--unread .thread__msg { color: var(--ink-900); font-weight: 500; }
+  .thread__right { text-align: right; flex-shrink: 0; }
+  .thread__time { font-size: 11px; color: var(--paper-500); font-family: var(--font-mono); }
+  .thread__unread-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-600); margin-top: 8px; }
+  .empty-state { text-align:center; padding: 48px; color: var(--paper-500); border: 1.5px dashed var(--paper-200); border-radius: var(--r-lg); margin-top:14px; display:none; }
+</style></head>
+<body>
+<div class="app-shell with-tabbar">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link" href="/app/buyer/index.html">Browse</a>
+      <a class="appbar__link" href="/app/buyer/ai.html">AI Search</a>
+      <a class="appbar__link appbar__link--active" href="/app/chat/index.html">Messages</a>
+    </nav>
+    <div class="appbar__right"><a href="/app/buyer/account.html" class="avatar">A</a></div>
+  </div>
+</header>
+
+<main class="inbox">
+  <div class="inbox-head am-rise">
+    <div>
+      <span class="kicker">Conversations</span>
+      <h1 style="margin-top:8px; font-size: clamp(28px, 3.4vw, 40px);">Messages <span style="font-family:var(--font-mono); color:var(--paper-500); font-size:var(--fs-lg); font-weight:500;"></span></h1>
+    </div>
+  </div>
+
+  <div class="filters am-rise" data-d="1">
+    <button aria-current="true">All · 8</button>
+    <button>Buying · 5</button>
+    <button>Selling · 3</button>
+    <button>Active offers · 2</button>
+  </div>
+
+  <div class="am-rise" data-d="2" id="thread-list"></div>
+  <div class="empty-state" id="empty-state">No conversations yet. Start by messaging a seller on a listing.</div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/buyer/index.html"><span data-icon="home" data-size="20"></span>Browse</a>
+  <a href="/app/buyer/ai.html"><span data-icon="sparkle" data-size="20"></span>AI</a>
+  <a href="/app/chat/index.html" aria-current="page" style="position:relative;"><span data-icon="chat" data-size="20"></span>Chats<span class="tabbar__badge" style="display:none;"></span></a>
+  <a href="/app/buyer/saved.html"><span data-icon="heart" data-size="20"></span>Saved</a>
+  <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now()-new Date(ts))/1000);
+  if (s<60) return 'now';
+  if (s<3600) return Math.floor(s/60)+'m';
+  if (s<86400) return Math.floor(s/3600)+'h';
+  if (s<604800) return Math.floor(s/86400)+'d';
+  return Math.floor(s/604800)+'w';
+}
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); return; }
+
+const profile = await getUserProfile();
+const isSeller = profile?.primary_role === 'seller' || profile?.primary_role === 'owner' || profile?.is_admin;
+
+if (isSeller) {
+  document.querySelector('.appbar__nav').innerHTML = `
+    <a class="appbar__link" href="/app/seller/index.html">My Listings</a>
+    <a class="appbar__link appbar__link--active" href="/app/chat/index.html">Messages</a>
+    <a class="appbar__link" href="/app/seller/new.html">New Listing</a>`;
+  document.querySelector('.appbar__right a.avatar').href = '/app/seller/account.html';
+  document.querySelector('nav.tabbar').innerHTML = `
+    <a href="/app/seller/index.html"><span data-icon="home" data-size="20"></span>Home</a>
+    <a href="/app/seller/new.html"><span data-icon="plus" data-size="20"></span>New</a>
+    <a href="/app/chat/index.html" aria-current="page" style="position:relative;"><span data-icon="chat" data-size="20"></span>Chats<span class="tabbar__badge" style="display:none;"></span></a>
+    <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>`;
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(document.querySelector('nav.tabbar'));
+}
+
+initUnreadBadge('.tabbar__badge');
+
+const listEl = document.getElementById('thread-list');
+const emptyEl = document.getElementById('empty-state');
+
+let allConvs = [];
+let activeFilter = 'all';
+
+async function loadConvs() {
+  const { data } = await supabase
+    .from('conversations')
+    .select('id, buyer_id, seller_id, status, last_message_at, listings(id, make, model, variant, year, price_minor, primary_photo_url), messages(id, body, sender_id, read_at, created_at), buyer:profiles!conversations_buyer_id_fkey(id, display_name), seller:profiles!conversations_seller_id_fkey(id, display_name)')
+    .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+    .order('last_message_at', { ascending: false });
+  allConvs = data || [];
+  renderConvs();
+}
+
+function renderConvs() {
+  let filtered = allConvs;
+  if (activeFilter === 'buying') filtered = allConvs.filter(c => c.buyer_id === user.id);
+  else if (activeFilter === 'selling') filtered = allConvs.filter(c => c.seller_id === user.id);
+  else if (activeFilter === 'offers') filtered = allConvs.filter(c => c.status === 'offer');
+
+  let totalUnread = 0;
+  const buyingCount = allConvs.filter(c => c.buyer_id === user.id).length;
+  const sellingCount = allConvs.filter(c => c.seller_id === user.id).length;
+
+  const tabs = document.querySelectorAll('.filters button');
+  if (tabs[0]) tabs[0].textContent = `All · ${allConvs.length}`;
+  if (tabs[1]) tabs[1].textContent = `Buying · ${buyingCount}`;
+  if (tabs[2]) tabs[2].textContent = `Selling · ${sellingCount}`;
+
+  if (!filtered.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    document.querySelector('h1 span').textContent = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  listEl.innerHTML = filtered.map(c => {
+    const isBuyer = c.buyer_id === user.id;
+    const listing = c.listings;
+    const other = isBuyer ? c.seller : c.buyer;
+    const otherName = other?.display_name || (isBuyer ? 'Seller' : 'Buyer');
+    const msgs = (c.messages || []).sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+    const lastMsg = msgs[msgs.length-1];
+    const unreadCount = msgs.filter(m => m.sender_id !== user.id && !m.read_at).length;
+    if (unreadCount > 0) totalUnread++;
+    const isClosed = c.status === 'closed';
+    const roleLabel = isBuyer ? 'You\'re buying' : 'You\'re selling';
+    const thumb = listing?.primary_photo_url
+      ? (listing.primary_photo_url.startsWith('http') ? listing.primary_photo_url : `https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/listings/${listing.primary_photo_url}`)
+      : '';
+    const lastBody = lastMsg ? (lastMsg.sender_id === user.id ? 'You: ' : '') + lastMsg.body : 'Start the conversation…';
+    const priceL = listing ? ((listing.price_minor/100)/100000).toFixed(1) : '';
+    const href = isClosed ? `/app/chat/closed.html?id=${c.id}` : `/app/chat/detail.html?id=${c.id}`;
+    return `<a class="thread ${unreadCount ? 'thread--unread' : ''}" href="${href}">
+      <div class="thread__thumb">${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" loading="lazy">` : '<div class="imgslot" style="height:100%;"><div class="imgslot__car"></div></div>'}</div>
+      <div class="thread__main">
+        <div class="thread__top"><span class="thread__name">${otherName}</span>${isClosed ? '<span class="pill pill--ok">Deal closed</span>' : ''}</div>
+        <div class="thread__car">${listing ? `${listing.year} ${listing.make} ${listing.model}${listing.variant?' '+listing.variant:''} · PKR ${priceL}L` : ''} · ${roleLabel}</div>
+        <div class="thread__msg">${lastBody}</div>
+      </div>
+      <div class="thread__right"><div class="thread__time">${timeAgo(c.last_message_at)}</div>${unreadCount ? '<span class="thread__unread-dot"></span>' : ''}</div>
+    </a>`;
+  }).join('');
+
+  document.querySelector('h1 span').textContent = totalUnread ? `· ${totalUnread} unread` : '';
+  const badge = document.querySelector('.tabbar__badge');
+  if (badge) {
+    if (totalUnread > 0) { badge.textContent = String(totalUnread); badge.removeAttribute('style'); }
+    else badge.style.display = 'none';
+  }
+}
+
+document.querySelectorAll('.filters button').forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filters button').forEach(b => b.removeAttribute('aria-current'));
+    btn.setAttribute('aria-current', 'true');
+    activeFilter = ['all','buying','selling','offers'][i] || 'all';
+    renderConvs();
+  });
+});
+
+supabase.channel('chat-inbox')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => loadConvs())
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => loadConvs())
+  .subscribe();
+
+await loadConvs();
+})();
+</script>
+</body></html>

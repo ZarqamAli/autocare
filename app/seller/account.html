@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Seller profile · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .acct { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; display: grid; gap: 16px; }
+  .profile-card { display:flex; gap:20px; padding:24px; background:linear-gradient(180deg,#fff,var(--paper-50)); border:var(--border-hair); border-radius: var(--r-2xl); align-items:center; box-shadow:var(--shadow-sm); }
+  .big-avatar { width:80px; height:80px; border-radius:20%; background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:30px; flex-shrink:0; box-shadow: inset 0 0 0 3px #fff, 0 0 0 1px var(--paper-200); }
+  .stats3 { display:grid; gap:12px; grid-template-columns: repeat(3, 1fr); }
+  .stat-pad { padding: 18px; background:var(--paper-0); border:var(--border-hair); border-radius:14px; text-align:center; }
+  .stat-pad b { display:block; font-family:var(--font-mono); font-size:24px; color:var(--ink-900); font-weight:700; }
+  .stat-pad span { font-size: 11px; color:var(--paper-500); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; }
+  .row-card { display:flex; align-items:center; gap:14px; padding:16px 20px; background:var(--paper-0); border:var(--border-hair); border-radius: var(--r-lg); }
+  .row-card__icon { width:38px; height:38px; border-radius:10px; background:var(--paper-75); color:var(--paper-700); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .row-card__main { flex:1; min-width:0; }
+  .row-card__title { font-weight:600; color:var(--ink-900); }
+  .row-card__sub { font-size:var(--fs-xs); color:var(--paper-500); margin-top:2px; }
+  .grp-title { font-size: var(--fs-xs); font-weight: 700; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding: 0 4px; }
+  .reviews { background:var(--paper-0); border:var(--border-hair); border-radius:var(--r-lg); padding: 22px; }
+  .review { padding: 14px 0; border-bottom: 1px dashed var(--paper-150); }
+  .review:last-child { border-bottom: none; }
+</style></head>
+<body>
+<div class="app-shell with-tabbar">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link" href="/app/owner/dashboard.html">Dashboard</a>
+      <a class="appbar__link appbar__link--active" href="/app/seller/account.html">Profile</a>
+    </nav>
+  </div>
+</header>
+
+<main class="acct">
+  <div class="profile-card am-rise">
+    <div class="big-avatar">HK</div>
+    <div style="flex:1; min-width:0;">
+      <div class="row gap-2" style="margin-bottom:6px;">
+        <h2 style="font-size:var(--fs-2xl);">Hassan Khan</h2>
+        <span class="pill pill--ok"><span data-icon="verified" data-size="12"></span>Verified seller</span>
+      </div>
+      <div style="color:var(--paper-500); display:flex; flex-wrap:wrap; gap:10px; font-size:var(--fs-sm);">
+        <span><span data-icon="pin" data-size="13"></span> DHA, Lahore</span><span>·</span>
+        <span>★ 4.9 (23 reviews)</span><span>·</span>
+        <span>Selling since 2023</span>
+      </div>
+      <p style="font-size:var(--fs-sm); color:var(--paper-700); margin-top:10px; max-width:480px;">Owner of HK Motors. I personally inspect every car before listing — no flipping, no hidden damage.</p>
+    </div>
+    <a class="btn btn--ghost btn--sm hide-mobile" href="#">Edit profile</a>
+  </div>
+
+  <div class="stats3 am-rise" data-d="1">
+    <div class="stat-pad"><b>34</b><span>Cars sold</span></div>
+    <div class="stat-pad"><b>4.9 ★</b><span>Rating</span></div>
+    <div class="stat-pad"><b>42m</b><span>Avg. response</span></div>
+  </div>
+
+  <a class="row-card am-rise" data-d="2" href="/app/seller/verify.html" style="background: linear-gradient(180deg, var(--ok-50), #fff); border-color: #bbf7d0;">
+    <div class="row-card__icon" style="background:var(--ok-500); color:#fff;"><span data-icon="verified" data-size="18"></span></div>
+    <div class="row-card__main">
+      <div class="row-card__title">Verification status</div>
+      <div class="row-card__sub">Phone ✓ · CNIC pending review · Ownership locked · Bank locked</div>
+    </div>
+    <span data-icon="chev-r" data-size="18" style="color:var(--paper-400)"></span>
+  </a>
+
+  <div>
+    <div class="grp-title">Storefront</div>
+    <div class="col" style="gap:8px;">
+      <a class="row-card am-rise" data-d="2" href="#"><div class="row-card__icon"><span data-icon="user" data-size="18"></span></div><div class="row-card__main"><div class="row-card__title">Public profile</div><div class="row-card__sub">automart.pk/sellers/hk-motors</div></div><span data-icon="chev-r" data-size="18" style="color:var(--paper-400)"></span></a>
+      <a class="row-card am-rise" data-d="3" href="#"><div class="row-card__icon"><span data-icon="cam" data-size="18"></span></div><div class="row-card__main"><div class="row-card__title">Cover & avatar</div><div class="row-card__sub">Customize how your storefront looks</div></div><span data-icon="chev-r" data-size="18" style="color:var(--paper-400)"></span></a>
+      <a class="row-card am-rise" data-d="3" href="#"><div class="row-card__icon"><span data-icon="rupee" data-size="18"></span></div><div class="row-card__main"><div class="row-card__title">Payout account</div><div class="row-card__sub">HBL •••• 4892 · for escrow releases</div></div><span data-icon="chev-r" data-size="18" style="color:var(--paper-400)"></span></a>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">Recent reviews</div>
+    <div class="reviews am-rise" data-d="4">
+      <div class="review">
+        <div class="row gap-2"><strong>Ahmed M.</strong><span style="color:#f59e0b;">★★★★★</span><span style="margin-left:auto; font-size:11px; color:var(--paper-500);">2 weeks ago · Civic Oriel</span></div>
+        <p style="font-size:var(--fs-sm); color:var(--paper-700); margin-top:6px; line-height:1.55;">Honest seller. Car was exactly as described, papers were ready, escrow handover took 20 minutes. Recommended.</p>
+      </div>
+      <div class="review">
+        <div class="row gap-2"><strong>Fatima Z.</strong><span style="color:#f59e0b;">★★★★★</span><span style="margin-left:auto; font-size:11px; color:var(--paper-500);">1 month ago · Yaris ATIV</span></div>
+        <p style="font-size:var(--fs-sm); color:var(--paper-700); margin-top:6px; line-height:1.55;">Replied within minutes, very flexible on viewing times. Disclosed a small dent that wasn't even in the AI report.</p>
+      </div>
+      <div class="review">
+        <div class="row gap-2"><strong>Bilal A.</strong><span style="color:#f59e0b;">★★★★☆</span><span style="margin-left:auto; font-size:11px; color:var(--paper-500);">2 months ago · Corolla Altis</span></div>
+        <p style="font-size:var(--fs-sm); color:var(--paper-700); margin-top:6px; line-height:1.55;">Smooth deal. Wish the photos had shown the dashboard better, but otherwise no surprises.</p>
+      </div>
+      <a href="#" class="btn btn--ghost btn--sm" style="margin-top: 14px;">Show all 23 reviews →</a>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">Settings</div>
+    <div class="col" style="gap:8px;">
+      <a class="row-card am-rise" data-d="5" href="#"><div class="row-card__icon"><span data-icon="bell" data-size="18"></span></div><div class="row-card__main"><div class="row-card__title">Notifications</div></div><span data-icon="chev-r" data-size="18" style="color:var(--paper-400)"></span></a>
+      <a class="row-card am-rise" data-d="6" href="/app/login.html"><div class="row-card__icon" style="color:var(--bad-500); background:var(--bad-50);"><span data-icon="arrow-r" data-size="18"></span></div><div class="row-card__main"><div class="row-card__title" style="color:var(--bad-600);">Sign out</div></div></a>
+    </div>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="#"><span data-icon="tag" data-size="20"></span>Listings</a>
+  <a href="/app/seller/new.html"><span data-icon="plus" data-size="20"></span>New</a>
+  <a href="/app/chat/index.html"><span data-icon="chat" data-size="20"></span>Chats</a>
+  <a href="/app/seller/account.html" aria-current="page"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); return; }
+const [{ data: p }, { data: sp }, { count: sold }, { data: revs }] = await Promise.all([
+  supabase.from('profiles').select('*').eq('id', user.id).single(),
+  supabase.from('seller_profiles').select('verification_status,seller_type').eq('user_id', user.id).maybeSingle(),
+  supabase.from('listings').select('id', {count:'exact',head:true}).eq('seller_id', user.id).eq('status','sold'),
+  supabase.from('reviews').select('rating,comment,created_at,listings(make,model)').eq('reviewee_id', user.id).order('created_at',{ascending:false}).limit(3)
+]);
+if (!sp && p?.primary_role !== 'seller' && p?.primary_role !== 'owner' && !p?.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
+const avg = revs?.length ? (revs.reduce((s,r)=>s+r.rating,0)/revs.length).toFixed(1) : null;
+const initials = (p?.display_name||'S').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const av = document.querySelector('.big-avatar');
+if (p?.avatar_url) {
+  av.style.backgroundImage = `url(${p.avatar_url})`;
+  av.style.backgroundSize = 'cover';
+  av.style.backgroundPosition = 'center';
+  av.textContent = '';
+} else av.textContent = initials;
+document.querySelector('.profile-card h2').textContent = p?.display_name || '';
+const pads = document.querySelectorAll('.stat-pad b');
+pads[0].textContent = sold ?? 0;
+if (avg) pads[1].textContent = avg + ' ★';
+const verifSub = document.querySelector('a[href="/app/seller/verify.html"] .row-card__sub');
+if (verifSub && sp) verifSub.textContent = ({approved:'Fully verified ✓',pending:'Verification in review',rejected:'Rejected — resubmit'})[sp.verification_status] || 'Not submitted';
+const metaDiv = document.querySelector('.profile-card [data-icon="pin"]')?.parentElement?.parentElement;
+if (metaDiv) {
+  const spans = [...metaDiv.children];
+  if (p?.city && spans[0]) {
+    const t = [...spans[0].childNodes].find(n=>n.nodeType===3);
+    if (t) t.nodeValue = ' '+p.city;
+  }
+  if (avg && spans[2]) spans[2].textContent = '★ '+avg+' ('+(revs?.length||0)+' reviews)';
+  if (p?.created_at && spans[4]) spans[4].textContent = 'Selling since '+new Date(p.created_at).getFullYear();
+}
+if (revs?.length) {
+  const stars = n => '★'.repeat(n)+'☆'.repeat(5-n);
+  document.querySelector('.reviews').innerHTML = revs.map(r=>`<div class="review">
+    <div class="row gap-2"><strong>Buyer</strong><span style="color:#f59e0b;">${stars(r.rating)}</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--paper-500);">${new Date(r.created_at).toLocaleDateString('en-PK',{month:'short',day:'numeric'})} · ${r.listings?.make||''} ${r.listings?.model||''}</span></div>
+    <p style="font-size:var(--fs-sm);color:var(--paper-700);margin-top:6px;line-height:1.55;">${r.comment||''}</p>
+  </div>`).join('')+`<a href="#" class="btn btn--ghost btn--sm" style="margin-top:14px;">Show all ${revs.length} reviews →</a>`;
+}
+av.style.cursor = 'pointer';
+av.addEventListener('click', () => {
+  const inp = Object.assign(document.createElement('input'),{type:'file',accept:'image/*'});
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    const path = `${user.id}/${Date.now()}.${f.name.split('.').pop()}`;
+    const {error} = await supabase.storage.from('avatars').upload(path, f, {upsert:true});
+    if (error) return;
+    const {data:{publicUrl}} = supabase.storage.from('avatars').getPublicUrl(path);
+    await supabase.from('profiles').update({avatar_url:publicUrl}).eq('id', user.id);
+    av.style.backgroundImage = `url(${publicUrl})`; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; av.textContent='';
+  };
+  inp.click();
+});
+let editing = false;
+document.querySelector('.btn--ghost.hide-mobile')?.addEventListener('click', e => {
+  e.preventDefault(); if (editing) return; editing = true;
+  const h2 = document.querySelector('.profile-card h2');
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div style="display:flex;gap:8px;flex-direction:column;margin-bottom:8px;">
+    <input id="ep-n" class="input" style="max-width:280px;" value="${p?.display_name||''}" placeholder="Full name">
+    <input id="ep-p" class="input" style="max-width:280px;" value="${p?.phone||''}" placeholder="+92 3XX XXX XXXX">
+  </div><div style="display:flex;gap:8px;">
+    <button class="btn btn--primary btn--sm" id="ep-s">Save</button>
+    <button class="btn btn--ghost btn--sm" id="ep-c">Cancel</button>
+  </div>`;
+  h2.replaceWith(wrap);
+  document.getElementById('ep-c').onclick = () => { wrap.replaceWith(h2); editing = false; };
+  document.getElementById('ep-s').onclick = async () => {
+    const name = document.getElementById('ep-n').value.trim();
+    const phone = document.getElementById('ep-p').value.trim();
+    if (!name) return;
+    await supabase.from('profiles').update({display_name:name,phone}).eq('id', user.id);
+    h2.textContent = name; p.display_name = name; p.phone = phone;
+    wrap.replaceWith(h2); editing = false;
+  };
+});
+document.querySelector('a[href="/app/login.html"]')?.addEventListener('click', async e => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = '/app/login.html';
+});
+})();
+</script>
+</body></html>

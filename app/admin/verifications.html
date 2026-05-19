@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Verification queue · AutoMart Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  body { background: #0b1020; color: #e2e8f0; }
+  body::before { content: none; }
+
+  .admin-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  @media (min-width: 960px) { .admin-shell { grid-template-columns: 240px 1fr; } }
+
+  .admin-sidebar {
+    background: #060818; border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 22px 14px; display: none;
+  }
+  @media (min-width: 960px) { .admin-sidebar { display: block; position: sticky; top: 0; height: 100vh; } }
+  .admin-sidebar__brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 24px; font-weight: 700; color: #fff; }
+  .admin-sidebar__brand .brand__mark { background: #fff; color: #0b1020; }
+  .admin-sidebar a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    color: #94a3b8; font-weight: 500; font-size: var(--fs-sm);
+  }
+  .admin-sidebar a:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  .admin-sidebar a[aria-current="page"] { background: rgba(99,102,241,0.15); color: #c7d2fe; font-weight:600; }
+  .admin-sidebar__group { font-size: 11px; color: #475569; text-transform:uppercase; letter-spacing: 0.06em; padding: 16px 8px 6px; font-weight:700; }
+
+  .admin-main { padding: 24px 28px 96px; }
+
+  .admin-head { display: flex; align-items:center; gap: 12px; margin-bottom: 22px; flex-wrap:wrap; }
+  .admin-head h1 { font-size: clamp(24px, 3vw, 36px); letter-spacing:-0.02em; color: #fff; }
+  .pill-dark { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(99,102,241,0.18); color: #c7d2fe; border-radius: var(--r-pill); font-size: 11px; font-weight: 600; }
+
+  .stats-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 22px; }
+  .stat-dark { padding: 16px 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+  .stat-dark__lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .stat-dark__val { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: #fff; margin-top: 6px; }
+
+  .filter-bar {
+    display:flex; gap: 8px; padding: 6px; background: rgba(255,255,255,0.04);
+    border-radius: var(--r-pill); width: fit-content; margin-bottom: 18px; flex-wrap:wrap;
+  }
+  .filter-bar button { padding: 7px 14px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; color: #94a3b8; }
+  .filter-bar button[aria-current="true"] { background: #fff; color: #0b1020; }
+
+  .panel-dark {
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; overflow: hidden;
+  }
+  .vq-table { width: 100%; }
+  .vq-table th, .vq-table td { padding: 14px 18px; text-align: left; font-size: var(--fs-sm); border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .vq-table thead { background: rgba(255,255,255,0.03); }
+  .vq-table th { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .vq-table tbody tr { transition: background var(--dur); cursor: pointer; }
+  .vq-table tbody tr:hover { background: rgba(99,102,241,0.06); }
+  .vq-table tbody tr:last-child td { border-bottom: none; }
+  .vq-table .user-cell { display: flex; align-items: center; gap: 10px; }
+  .vq-table .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #2563eb); color: #fff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .vq-table .id-mono { font-family: var(--font-mono); font-size: 11px; color: #64748b; }
+
+  .pill-status { display:inline-flex; align-items:center; gap:5px; padding: 3px 9px; border-radius: 999px; font-size:11px; font-weight:600; }
+  .pill-pending { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .pill-flagged { background: rgba(239,68,68,0.18); color: #fca5a5; }
+  .pill-review { background: rgba(99,102,241,0.18); color: #c7d2fe; }
+
+  .ai-conf { display: inline-flex; align-items: center; gap: 6px; }
+  .ai-bar { width: 60px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+  .ai-bar__fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #22c55e); border-radius: inherit; }
+  .ai-bar__fill--low { background: linear-gradient(90deg, #ef4444, #f59e0b); }
+
+  /* Drawer */
+  .drawer { position: fixed; inset: 0; background: rgba(2,6,23,0.65); z-index: 50; display: none; align-items: stretch; justify-content: flex-end; backdrop-filter: blur(10px); animation: fade 200ms ease forwards; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .drawer[data-open="true"] { display: flex; }
+  .drawer__panel {
+    width: 100%; max-width: 720px; background: #0b1020;
+    border-left: 1px solid rgba(255,255,255,0.08); padding: 28px;
+    overflow-y: auto; animation: slide 300ms cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes slide { from { transform: translateX(40px); opacity:0; } to { transform: none; opacity:1; } }
+  .drawer__close { position: absolute; top: 16px; right: 22px; color: #94a3b8; font-size: 22px; cursor: pointer; background: none; border: none; }
+  .doc-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin: 18px 0; }
+  .doc-cell { aspect-ratio: 16/10; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 10px; position: relative; overflow:hidden; border: 1px solid rgba(255,255,255,0.06); }
+  .doc-cell::after { content: 'CNIC FRONT'; position: absolute; top: 8px; left: 8px; font-size: 9px; color: #64748b; letter-spacing: 0.1em; font-weight:700; font-family: var(--font-mono); }
+  .doc-cell:nth-of-type(2)::after { content: 'CNIC BACK'; }
+  .doc-cell:nth-of-type(3)::after { content: 'SELFIE + CNIC'; }
+  .doc-cell:nth-of-type(4)::after { content: 'REGISTRATION'; }
+
+  .info-row { display: flex; justify-content: space-between; padding: 9px 0; font-size: var(--fs-sm); border-bottom: 1px dashed rgba(255,255,255,0.06); }
+  .info-row .lbl { color: #64748b; }
+  .info-row .val { color: #e2e8f0; font-weight: 500; }
+  .info-row .val--mono { font-family: var(--font-mono); font-size: 12px; }
+
+  .ai-summary {
+    margin: 16px 0; padding: 16px;
+    background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 12px;
+  }
+  .ai-summary h4 { color: #c7d2fe; font-size: var(--fs-sm); display:flex; align-items:center; gap: 6px; margin-bottom: 8px; }
+  .ai-summary p { font-size: var(--fs-sm); color: #cbd5e1; line-height: 1.55; }
+  .ai-summary ul { font-size: var(--fs-sm); color: #cbd5e1; line-height: 1.7; padding-left: 18px; margin-top: 6px; }
+
+  .drawer__actions {
+    position: sticky; bottom: 0; padding: 16px 0 0;
+    background: linear-gradient(0deg, #0b1020 70%, transparent);
+    margin-top: 18px;
+  }
+
+  .btn-dark { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.08); padding: 0 18px; height:42px; border-radius: 10px; font-weight:600; font-size: var(--fs-sm); cursor:pointer; }
+  .btn-dark:hover { background: rgba(255,255,255,0.1); }
+  .btn-approve { background: linear-gradient(180deg, #22c55e, #16a34a); color:#fff; border:none; padding:0 22px; height:42px; border-radius:10px; font-weight:700; cursor:pointer; box-shadow: 0 8px 20px -8px rgba(34,197,94,0.5); }
+  .btn-reject { background: linear-gradient(180deg, #ef4444, #dc2626); color:#fff; border:none; padding:0 18px; height:42px; border-radius:10px; font-weight:700; cursor:pointer; }
+
+  .mobile-head { display: flex; align-items:center; gap:8px; padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); background: #060818; color:#fff; }
+  @media (min-width: 960px) { .mobile-head { display: none; } }
+</style></head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__brand"><span class="brand__mark">A</span> AutoMart · Admin</div>
+    <a href="#"><span data-icon="home" data-size="16"></span>Overview</a>
+    <a href="verifications.html" aria-current="page"><span data-icon="verified" data-size="16"></span>Verifications</a>
+    <a href="#"><span data-icon="alert" data-size="16"></span>Reports</a>
+    <a href="analytics.html"><span data-icon="chart" data-size="16"></span>Analytics</a>
+    <div class="admin-sidebar__group">Catalog</div>
+    <a href="#"><span data-icon="tag" data-size="16"></span>Listings</a>
+    <a href="#"><span data-icon="user" data-size="16"></span>Users</a>
+    <a href="#"><span data-icon="doc" data-size="16"></span>Audit log</a>
+    <div class="admin-sidebar__group">Account</div>
+    <a href="#"><span data-icon="cog" data-size="16"></span>Settings</a>
+    <a href="/app/login.html"><span data-icon="arrow-r" data-size="16"></span>Sign out</a>
+  </aside>
+
+  <main class="admin-main">
+    <div class="mobile-head"><strong>Verification queue</strong></div>
+
+    <div class="admin-head">
+      <span class="pill-dark"><span data-icon="verified" data-size="12"></span>Trust ops</span>
+      <h1>Verification queue</h1>
+      <span style="font-family: var(--font-mono); color:#64748b; font-size: var(--fs-sm); margin-left: 6px;">Loading…</span>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <button class="btn-dark"><span data-icon="cog" data-size="14"></span></button>
+        <button class="btn-dark">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-dark"><div class="stat-dark__lbl">Pending</div><div class="stat-dark__val" id="stat-pending">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Total sellers</div><div class="stat-dark__val" id="stat-total">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Approved</div><div class="stat-dark__val" id="stat-approved">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Rejected</div><div class="stat-dark__val" id="stat-rejected" style="color:#fca5a5;">—</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <button data-filter="all" aria-current="true">All</button>
+      <button data-filter="pending">Pending</button>
+      <button data-filter="rejected">Rejected</button>
+      <button data-filter="mechanics" style="border-left:1px solid rgba(255,255,255,0.1); margin-left:4px; padding-left:14px;">Mechanics</button>
+      <button data-filter="stolen" style="border-left:1px solid rgba(255,255,255,0.1); margin-left:4px; padding-left:14px; color:#fca5a5;">🚨 Stolen <span id="stolen-badge"></span></button>
+    </div>
+
+    <section class="panel-dark">
+      <table class="vq-table">
+        <thead><tr><th>User</th><th>Type</th><th>AI confidence</th><th>Status</th><th>Submitted</th><th>Wait</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div class="drawer">
+    <div class="drawer__panel" style="position: relative;">
+      <button class="drawer__close" onclick="document.querySelector('.drawer').dataset.open='false'">×</button>
+      <span class="pill-dark" style="background: rgba(245,158,11,0.18); color:#fbbf24;"><span data-icon="alert" data-size="12"></span>Flagged · selfie mismatch</span>
+      <h2 style="font-size: 26px; color:#fff; margin: 10px 0 4px;">Hassan Khan</h2>
+      <div style="color:#94a3b8; font-size: var(--fs-sm);">u_8K2P9XQ4 · Submitted 14:38 today · Seller verification</div>
+
+      <div class="ai-summary">
+        <h4><span data-icon="sparkle" data-size="14"></span>AI verification report · 73% confidence</h4>
+        <p><strong style="color:#fbbf24;">Flag:</strong> Face match between selfie and CNIC photo scored 0.71 (threshold 0.85). Lighting differences are likely the cause but human review recommended.</p>
+        <ul>
+          <li>CNIC structure & MRZ: <strong style="color:#86efac;">valid</strong></li>
+          <li>OCR vs. profile name: <strong style="color:#86efac;">match (Hassan Khan)</strong></li>
+          <li>Photo metadata: <strong style="color:#86efac;">no tampering detected</strong></li>
+          <li>CNIC NADRA records: <strong style="color:#86efac;">verified active</strong></li>
+          <li>Registration book name: <strong style="color:#86efac;">matches CNIC</strong></li>
+        </ul>
+      </div>
+
+      <h4 style="color:#cbd5e1; margin: 16px 0 6px; font-size: var(--fs-sm); text-transform:uppercase; letter-spacing: 0.06em;">Submitted documents</h4>
+      <div class="doc-grid">
+        <div class="doc-cell"></div>
+        <div class="doc-cell"></div>
+        <div class="doc-cell"></div>
+        <div class="doc-cell"></div>
+      </div>
+
+      <h4 style="color:#cbd5e1; margin: 16px 0 6px; font-size: var(--fs-sm); text-transform:uppercase; letter-spacing: 0.06em;">User details</h4>
+      <div>
+        <div class="info-row"><span class="lbl">Full name (CNIC)</span><span class="val">Hassan Khan</span></div>
+        <div class="info-row"><span class="lbl">CNIC number</span><span class="val val--mono">35202-•••••88-3</span></div>
+        <div class="info-row"><span class="lbl">DOB</span><span class="val">12 Mar 1989</span></div>
+        <div class="info-row"><span class="lbl">Phone</span><span class="val val--mono">+92 3•• ••• ••87 ✓ verified</span></div>
+        <div class="info-row"><span class="lbl">Address</span><span class="val">DHA Phase 5, Lahore</span></div>
+        <div class="info-row"><span class="lbl">Member since</span><span class="val">Jan 2023 · 34 sales · 4.9 ★</span></div>
+        <div class="info-row"><span class="lbl">Cars listed</span><span class="val">3 active · 0 reports</span></div>
+      </div>
+
+      <div class="drawer__actions">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-reject">✕ Reject — request retake</button>
+          <button class="btn-dark">Request more info</button>
+          <button class="btn-approve" style="margin-left:auto;">✓ Approve · grant verified badge</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now()-new Date(ts))/1000);
+  if (s<60) return s+'s ago';
+  if (s<3600) return Math.floor(s/60)+'m ago';
+  if (s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function waitTime(ts) {
+  if (!ts) return '—';
+  const m = Math.floor((Date.now()-new Date(ts))/60000);
+  if (m<60) return m+'m';
+  return Math.floor(m/60)+'h '+( m%60)+'m';
+}
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); return; }
+const { data: _adminCheck } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
+if (!_adminCheck?.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
+
+let currentSp = null;
+let allItems = [];
+let activeFilter = 'all';
+
+const tbody = document.querySelector('.vq-table tbody');
+const drawer = document.querySelector('.drawer');
+const filterBar = document.querySelector('.filter-bar');
+const statsRow = document.querySelector('.stats-row');
+
+async function loadData(status = null) {
+  let q = supabase.from('seller_profiles')
+    .select('*, profiles!seller_profiles_user_id_fkey(display_name, email, phone, created_at)')
+    .order('created_at', { ascending: true });
+  if (status && status !== 'all') q = q.eq('verification_status', status);
+  else q = q.in('verification_status', ['pending','rejected','approved']);
+  const { data } = await q.limit(100);
+  return data || [];
+}
+
+async function renderTable(items) {
+  if (!items?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:40px;">No items in this view.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(sp => {
+    const profile = sp.profiles || {};
+    const initials = (profile.display_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const statusClass = sp.verification_status === 'pending' ? 'pill-pending' : sp.verification_status === 'approved' ? '' : 'pill-flagged';
+    const statusLabel = sp.verification_status === 'pending' ? 'Pending' : sp.verification_status === 'approved' ? '✓ Approved' : '✕ Rejected';
+    return `<tr data-spid="${sp.id}" style="cursor:pointer;">
+      <td><div class="user-cell"><div class="avatar-sm">${initials}</div><div><div style="color:#fff;font-weight:600;">${profile.display_name||'Unknown'}</div><div class="id-mono">${sp.user_id?.slice(0,12)}…</div></div></div></td>
+      <td>${sp.seller_type==='dealer'?'Dealer':'Seller'} · CNIC${sp.selfie_url?' + Selfie':''}</td>
+      <td><div class="ai-conf"><strong style="color:#86efac;font-family:var(--font-mono);">—</strong></div></td>
+      <td><span class="pill-status ${statusClass}">${statusLabel}</span></td>
+      <td>${new Date(sp.created_at).toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${waitTime(sp.created_at)}</td>
+      <td><span data-icon="chev-r" data-size="16" style="color:#64748b"></span></td>
+    </tr>`;
+  }).join('');
+  // Row click opens drawer
+  tbody.querySelectorAll('tr[data-spid]').forEach(row => {
+    row.addEventListener('click', () => openDrawer(items.find(s => s.id === row.dataset.spid)));
+  });
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(tbody);
+}
+
+async function openDrawer(sp) {
+  currentSp = sp;
+  const profile = sp.profiles || {};
+  const initials = (profile.display_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+  // Build doc cells with signed URLs
+  async function signedImg(path) {
+    if (!path) return '';
+    const { data } = await supabase.storage.from('verifications').createSignedUrl(path, 3600);
+    return data?.signedUrl || '';
+  }
+
+  const [frontUrl, backUrl, selfieUrl] = await Promise.all([
+    signedImg(sp.id_document_url),
+    signedImg(sp.cnic_back_url),
+    signedImg(sp.selfie_url),
+  ]);
+
+  function docCell(url, label) {
+    return `<div class="doc-cell" style="${url ? `background-image:url('${url}');background-size:cover;background-position:center;` : ''}"><span style="position:absolute;top:8px;left:8px;font-size:9px;color:#64748b;letter-spacing:.1em;font-weight:700;font-family:var(--font-mono);">${label}</span>${url ? `<a href="${url}" target="_blank" style="position:absolute;bottom:8px;right:8px;font-size:10px;color:#94a3b8;">View →</a>` : ''}</div>`;
+  }
+
+  drawer.querySelector('.drawer__panel').innerHTML = `
+    <button class="drawer__close" id="close-drawer">×</button>
+    <span class="pill-dark" style="background:rgba(245,158,11,.18);color:#fbbf24;">${sp.verification_status === 'rejected' ? '✕ Rejected' : sp.verification_status === 'pending' ? 'Pending review' : '✓ Approved'}</span>
+    <h2 style="font-size:26px;color:#fff;margin:10px 0 4px;">${profile.display_name||'Unknown'}</h2>
+    <div style="color:#94a3b8;font-size:var(--fs-sm);">${sp.user_id?.slice(0,16)} · Submitted ${timeAgo(sp.created_at)} · ${sp.seller_type} verification</div>
+    ${sp.rejection_reason ? `<div style="margin-top:10px;padding:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#fca5a5;font-size:var(--fs-sm);">Rejection reason: ${sp.rejection_reason}</div>` : ''}
+    <div class="ai-summary"><h4><span data-icon="sparkle" data-size="14"></span>Submitted documents</h4></div>
+    <div class="doc-grid">
+      ${docCell(frontUrl,'CNIC FRONT')}
+      ${docCell(backUrl,'CNIC BACK')}
+      ${docCell(selfieUrl,'SELFIE + CNIC')}
+      <div class="doc-cell"><span style="position:absolute;top:8px;left:8px;font-size:9px;color:#64748b;letter-spacing:.1em;font-weight:700;font-family:var(--font-mono);">REGISTRATION</span></div>
+    </div>
+    <h4 style="color:#cbd5e1;margin:16px 0 6px;font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.06em;">User details</h4>
+    <div>
+      <div class="info-row"><span class="lbl">Full name</span><span class="val">${sp.full_name||profile.display_name||'—'}</span></div>
+      <div class="info-row"><span class="lbl">CNIC</span><span class="val val--mono">${sp.cnic_number||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Phone</span><span class="val val--mono">${profile.phone||sp.phone_number||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Seller type</span><span class="val">${sp.seller_type||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Member since</span><span class="val">${profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-PK') : '—'}</span></div>
+    </div>
+    ${sp.verification_status !== 'approved' ? `
+    <div class="drawer__actions">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-reject" id="btn-reject">✕ Reject</button>
+        <button class="btn-approve" style="margin-left:auto;" id="btn-approve">✓ Approve · grant verified badge</button>
+      </div>
+      <input id="reject-reason" class="input" style="margin-top:10px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#fff;display:none;" placeholder="Rejection reason (required)">
+    </div>` : ''}
+  `;
+  drawer.dataset.open = 'true';
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(drawer.querySelector('.drawer__panel'));
+
+  document.getElementById('close-drawer')?.addEventListener('click', () => { drawer.dataset.open = 'false'; });
+
+  document.getElementById('btn-approve')?.addEventListener('click', async () => {
+    const [{ error: e1 }, { error: e2 }] = await Promise.all([
+      supabase.from('seller_profiles').update({ verification_status: 'approved' }).eq('id', sp.id),
+      supabase.from('profiles').update({ primary_role: 'seller' }).eq('id', sp.user_id)
+    ]);
+    if (!e1 && !e2) { drawer.dataset.open = 'false'; refresh(); }
+  });
+
+  const rejectBtn = document.getElementById('btn-reject');
+  const reasonInput = document.getElementById('reject-reason');
+  rejectBtn?.addEventListener('click', async () => {
+    if (reasonInput.style.display === 'none') {
+      reasonInput.style.display = 'block'; reasonInput.focus(); rejectBtn.textContent = 'Confirm rejection';
+      return;
+    }
+    const reason = reasonInput.value.trim();
+    if (!reason) { reasonInput.style.borderColor = '#ef4444'; return; }
+    const { error } = await supabase.from('seller_profiles').update({
+      verification_status: 'rejected', rejection_reason: reason
+    }).eq('id', sp.id);
+    if (!error) { drawer.dataset.open = 'false'; refresh(); }
+  });
+}
+
+async function loadReports() {
+  const { data } = await supabase.from('reports').select('id,reporter_id,target_type,target_id,reason,details,status,created_at').order('created_at',{ascending:false}).limit(100);
+  return data||[];
+}
+
+async function renderReports(reports) {
+  const table = document.querySelector('.vq-table');
+  table.querySelector('thead tr').innerHTML = '<th>Listing</th><th>Reporter</th><th>Reason</th><th>Status</th><th>Submitted</th><th></th>';
+  if (!reports.length) { table.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:40px;">No reports.</td></tr>'; return; }
+  const repIds = [...new Set(reports.map(r=>r.reporter_id))].filter(Boolean);
+  const lidIds = [...new Set(reports.filter(r=>r.target_type==='listing').map(r=>r.target_id))].filter(Boolean);
+  const [{ data: reporters }, { data: lListings }] = await Promise.all([
+    supabase.from('profiles').select('id,display_name').in('id', repIds),
+    lidIds.length ? supabase.from('listings').select('id,make,model,year').in('id',lidIds.slice(0,50)) : { data: [] }
+  ]);
+  const rMap = Object.fromEntries((reporters||[]).map(p=>[p.id,p.display_name]));
+  const lMap = Object.fromEntries((lListings||[]).map(l=>[l.id,`${l.year} ${l.make} ${l.model}`]));
+  table.querySelector('tbody').innerHTML = reports.map(r => {
+    const title = lMap[r.target_id] || r.target_id?.slice(0,12)+'…';
+    const rName = rMap[r.reporter_id] || r.reporter_id?.slice(0,12)+'…';
+    const isOpen = r.status==='open';
+    return `<tr data-rid="${r.id}">
+      <td><div style="color:#fff;font-weight:600;">${title}</div><a href="/app/listing/detail.html?id=${r.target_id}" target="_blank" style="font-size:11px;color:#64748b;">View →</a></td>
+      <td>${rName}</td>
+      <td>${(r.reason||'').replace(/_/g,' ')}${r.details?`<div style="font-size:11px;color:#64748b;">${r.details}</div>`:''}</td>
+      <td><span class="pill-status ${isOpen?'pill-pending':''}">${isOpen?'Open':'Resolved'}</span></td>
+      <td>${timeAgo(r.created_at)}</td>
+      <td>${isOpen?`<button class="btn-dark" style="font-size:11px;padding:0 10px;height:28px;" data-resolve="${r.id}">Resolve</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  table.querySelectorAll('[data-resolve]').forEach(btn => {
+    btn.addEventListener('click', async e => { e.stopPropagation(); await supabase.from('reports').update({status:'resolved'}).eq('id',btn.dataset.resolve); await refresh(); });
+  });
+}
+
+// ── Mechanic queue ───────────────────────────────────────────
+async function loadMechanics(status) {
+  let q = supabase.from('mechanic_profiles')
+    .select('*, profiles!mechanic_profiles_user_id_fkey(display_name, email, phone, created_at)')
+    .order('created_at', { ascending: true });
+  if (status && status !== 'all') q = q.eq('status', status);
+  const { data } = await q.limit(100);
+  return data || [];
+}
+
+function renderMechanicsTable(items) {
+  const table = document.querySelector('.vq-table');
+  table.querySelector('thead tr').innerHTML = '<th>Mechanic</th><th>Workshop</th><th>City</th><th>CNIC</th><th>Status</th><th>Submitted</th><th></th>';
+  if (!items.length) {
+    table.querySelector('tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:40px;">No mechanic applications.</td></tr>';
+    return;
+  }
+  table.querySelector('tbody').innerHTML = items.map(mp => {
+    const profile = mp.profiles || {};
+    const initials = (profile.display_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const sc = mp.status==='pending' ? 'pill-pending' : mp.status==='approved' ? '' : 'pill-flagged';
+    const sl = mp.status==='pending' ? 'Pending' : mp.status==='approved' ? '✓ Approved' : '✕ Rejected';
+    return `<tr data-mpid="${mp.id}" style="cursor:pointer;">
+      <td><div class="user-cell"><div class="avatar-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706)">${initials}</div><div><div style="color:#fff;font-weight:600;">${profile.display_name||'Unknown'}</div><div class="id-mono">${profile.phone||'—'}</div></div></div></td>
+      <td style="color:#e2e8f0;">${mp.workshop_name||'—'}</td>
+      <td style="color:#94a3b8;">${mp.city||'—'}</td>
+      <td class="id-mono">${mp.cnic_number||'—'}</td>
+      <td><span class="pill-status ${sc}">${sl}</span></td>
+      <td style="color:#64748b;">${timeAgo(mp.created_at)}</td>
+      <td><span data-icon="chev-r" data-size="16" style="color:#64748b"></span></td>
+    </tr>`;
+  }).join('');
+  table.querySelectorAll('tr[data-mpid]').forEach(row => {
+    row.addEventListener('click', () => openMechanicDrawer(items.find(m => m.id === row.dataset.mpid)));
+  });
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(table.querySelector('tbody'));
+}
+
+async function openMechanicDrawer(mp) {
+  const profile = mp.profiles || {};
+
+  async function signedImg(path) {
+    if (!path) return '';
+    const { data } = await supabase.storage.from('mechanic-docs').createSignedUrl(path, 3600);
+    return data?.signedUrl || '';
+  }
+
+  const [frontUrl, backUrl, selfieUrl, shopUrl] = await Promise.all([
+    signedImg(mp.cnic_front_url),
+    signedImg(mp.cnic_back_url),
+    signedImg(mp.selfie_url),
+    signedImg(mp.workshop_photo_url),
+  ]);
+
+  function docCell(url, label) {
+    return `<div class="doc-cell" style="${url?`background-image:url('${url}');background-size:cover;background-position:center;`:''}">
+      <span style="position:absolute;top:8px;left:8px;font-size:9px;color:#64748b;letter-spacing:.1em;font-weight:700;font-family:var(--font-mono);">${label}</span>
+      ${url?`<a href="${url}" target="_blank" style="position:absolute;bottom:8px;right:8px;font-size:10px;color:#94a3b8;background:rgba(0,0,0,.5);padding:3px 7px;border-radius:4px;">View ↗</a>`:''}
+    </div>`;
+  }
+
+  drawer.querySelector('.drawer__panel').innerHTML = `
+    <button class="drawer__close" id="close-drawer">×</button>
+    <span class="pill-dark" style="background:rgba(245,158,11,.18);color:#fbbf24;">${mp.status==='rejected'?'✕ Rejected':mp.status==='approved'?'✓ Approved':'Pending review'} · Mechanic</span>
+    <h2 style="font-size:26px;color:#fff;margin:10px 0 4px;">${profile.display_name||'Unknown'}</h2>
+    <div style="color:#94a3b8;font-size:var(--fs-sm);">${mp.user_id?.slice(0,16)} · Submitted ${timeAgo(mp.created_at)}</div>
+    ${mp.rejection_reason?`<div style="margin-top:10px;padding:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#fca5a5;font-size:var(--fs-sm);">Rejected: ${mp.rejection_reason}</div>`:''}
+
+    <h4 style="color:#cbd5e1;margin:18px 0 6px;font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.06em;">Documents</h4>
+    <div class="doc-grid">
+      ${docCell(frontUrl,'CNIC FRONT')}
+      ${docCell(backUrl,'CNIC BACK')}
+      ${docCell(selfieUrl,'SELFIE + CNIC')}
+      ${docCell(shopUrl,'WORKSHOP')}
+    </div>
+
+    <h4 style="color:#cbd5e1;margin:16px 0 6px;font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.06em;">Details</h4>
+    <div>
+      <div class="info-row"><span class="lbl">Full name</span><span class="val">${profile.display_name||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Workshop</span><span class="val">${mp.workshop_name||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Address</span><span class="val">${mp.address||'—'}</span></div>
+      <div class="info-row"><span class="lbl">City</span><span class="val">${mp.city||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Phone</span><span class="val val--mono">${mp.phone||profile.phone||'—'}</span></div>
+      <div class="info-row"><span class="lbl">CNIC</span><span class="val val--mono">${mp.cnic_number||'—'}</span></div>
+      <div class="info-row"><span class="lbl">Member since</span><span class="val">${profile.created_at?new Date(profile.created_at).toLocaleDateString('en-PK'):'—'}</span></div>
+    </div>
+
+    ${mp.status!=='approved'?`
+    <div class="drawer__actions">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-reject" id="btn-mreject">✕ Reject</button>
+        <button class="btn-approve" style="margin-left:auto;" id="btn-mapprove">✓ Approve mechanic</button>
+      </div>
+      <div id="reject-block" style="display:none;margin-top:10px;">
+        <input id="reject-reason-m" class="input" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#fff;width:100%;box-sizing:border-box;" placeholder="Rejection reason (required)">
+        <button class="btn-reject" id="btn-mreject-confirm" style="margin-top:8px;">Confirm rejection</button>
+      </div>
+    </div>`:''}
+  `;
+  drawer.dataset.open = 'true';
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(drawer.querySelector('.drawer__panel'));
+
+  document.getElementById('close-drawer')?.addEventListener('click', () => { drawer.dataset.open = 'false'; });
+
+  document.getElementById('btn-mapprove')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-mapprove');
+    btn.disabled = true; btn.textContent = 'Approving…';
+    const [{ error: e1 }, { error: e2 }] = await Promise.all([
+      supabase.from('mechanic_profiles').update({ status: 'approved', verified_at: new Date().toISOString() }).eq('id', mp.id),
+      supabase.from('profiles').update({ primary_role: 'mechanic' }).eq('id', mp.user_id)
+    ]);
+    if (!e1 && !e2) { drawer.dataset.open = 'false'; refresh(); }
+    else { btn.disabled = false; btn.textContent = '✓ Approve mechanic'; }
+  });
+
+  document.getElementById('btn-mreject')?.addEventListener('click', () => {
+    document.getElementById('reject-block').style.display = 'block';
+    document.getElementById('reject-reason-m').focus();
+  });
+
+  document.getElementById('btn-mreject-confirm')?.addEventListener('click', async () => {
+    const reason = document.getElementById('reject-reason-m').value.trim();
+    if (!reason) { document.getElementById('reject-reason-m').style.borderColor = '#ef4444'; return; }
+    const btn = document.getElementById('btn-mreject-confirm');
+    btn.disabled = true; btn.textContent = 'Rejecting…';
+    const { error } = await supabase.from('mechanic_profiles').update({ status: 'rejected', rejection_reason: reason }).eq('id', mp.id);
+    if (!error) { drawer.dataset.open = 'false'; refresh(); }
+    else { btn.disabled = false; btn.textContent = 'Confirm rejection'; }
+  });
+}
+// ── end mechanic queue ────────────────────────────────────────
+
+// ── Stolen vehicles ──────────────────────────────────────────
+async function loadStolen() {
+  const { data } = await supabase
+    .from('vehicles')
+    .select('id, make, model, year, registration_number, stolen_reported_at, owner_id, profiles!vehicles_owner_id_fkey(display_name, phone)')
+    .eq('is_stolen', true)
+    .order('stolen_reported_at', { ascending: false });
+  return data || [];
+}
+
+function renderStolenTable(items) {
+  const table = document.querySelector('.vq-table');
+  table.querySelector('thead tr').innerHTML = '<th>Vehicle</th><th>Registration</th><th>Owner</th><th>Phone</th><th>Reported</th><th></th>';
+  if (!items.length) {
+    table.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:40px;">No stolen vehicles on record.</td></tr>';
+    return;
+  }
+  table.querySelector('tbody').innerHTML = items.map(v => {
+    const p = v.profiles || {};
+    const reported = v.stolen_reported_at ? new Date(v.stolen_reported_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    return `<tr>
+      <td style="color:#fff;font-weight:600;">${v.year} ${v.make} ${v.model}</td>
+      <td class="id-mono">${v.registration_number || '—'}</td>
+      <td>${p.display_name || '—'}</td>
+      <td class="id-mono">${p.phone || '—'}</td>
+      <td style="color:#94a3b8;">${reported}</td>
+      <td><button class="btn-dark" style="font-size:11px;padding:0 10px;height:28px;color:#86efac;" data-recover="${v.id}">✓ Mark Recovered</button></td>
+    </tr>`;
+  }).join('');
+  table.querySelectorAll('[data-recover]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = '…';
+      const { error } = await supabase.from('vehicles').update({ is_stolen: false, stolen_reported_at: null }).eq('id', btn.dataset.recover);
+      if (!error) await refresh();
+      else { btn.disabled = false; btn.textContent = '✓ Mark Recovered'; }
+    });
+  });
+}
+
+async function updateStolenBadge() {
+  const { count } = await supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_stolen', true);
+  const badge = document.getElementById('stolen-badge');
+  if (badge && count) badge.textContent = `· ${count}`;
+}
+// ── end stolen ────────────────────────────────────────────────
+
+async function refresh() {
+  if (activeFilter === 'mechanics') {
+    renderMechanicsTable(await loadMechanics());
+    return;
+  }
+  if (activeFilter === 'stolen') {
+    renderStolenTable(await loadStolen());
+    return;
+  }
+  if (activeFilter === 'reports') {
+    const reps = await loadReports();
+    await renderReports(reps);
+  } else {
+    allItems = await loadData(activeFilter === 'all' ? null : activeFilter);
+    renderTable(allItems);
+    updateStats();
+  }
+  updateStolenBadge();
+}
+
+async function updateStats() {
+  const [{ count: total }, { count: pending }, { count: approved }, { count: rejected }] = await Promise.all([
+    supabase.from('seller_profiles').select('id', { count: 'exact', head: true }).in('verification_status', ['pending','rejected','approved']),
+    supabase.from('seller_profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending'),
+    supabase.from('seller_profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'approved'),
+    supabase.from('seller_profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'rejected'),
+  ]);
+  document.getElementById('stat-pending').textContent = pending || 0;
+  document.getElementById('stat-total').textContent = total || 0;
+  document.getElementById('stat-approved').textContent = approved || 0;
+  document.getElementById('stat-rejected').textContent = rejected || 0;
+  filterBar.querySelector('[data-filter="all"]').textContent = `All · ${total || 0}`;
+  filterBar.querySelector('[data-filter="pending"]').textContent = `Pending · ${pending || 0}`;
+  filterBar.querySelector('[data-filter="rejected"]').textContent = `Rejected · ${rejected || 0}`;
+  document.querySelector('.admin-head span[style*="font-mono"]').textContent = `${pending || 0} pending`;
+}
+
+// Filter tabs
+filterBar.querySelectorAll('button[data-filter]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    filterBar.querySelectorAll('button').forEach(b => b.removeAttribute('aria-current'));
+    btn.setAttribute('aria-current', 'true');
+    activeFilter = btn.dataset.filter;
+    await refresh();
+  });
+});
+
+// Initial load
+await refresh();
+updateStolenBadge();
+
+// Realtime
+supabase.channel('admin-verifications')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'seller_profiles' }, () => refresh())
+  .subscribe();
+})();
+</script>
+</body></html>

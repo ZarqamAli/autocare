@@ -1,0 +1,91 @@
+/* ── Mobile responsive overrides (max-width: 768px) ── */
+
+@media (max-width: 768px) {
+
+  /* ── Global ── */
+  img { max-width: 100%; height: auto; }
+
+  /* ── Auth / role selector ── */
+  .role { grid-template-columns: 1fr !important; }
+  .auth__card { padding: 22px 18px !important; }
+
+  /* ── App shell admin padding ── */
+  .admin-main { padding: 16px 14px 80px !important; }
+
+  /* ── Owner dashboard: tab bar scrolls, listings table cards ── */
+  .dash-tabs { overflow-x: auto; padding: 0 12px; -webkit-overflow-scrolling: touch; }
+  .dash-tabs::-webkit-scrollbar { display: none; }
+
+  .listings-table thead { display: none; }
+  .listings-table,
+  .listings-table tbody,
+  .listings-table tr { display: block; }
+  .listings-table tr {
+    border: 1px solid var(--paper-150);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: var(--paper-0);
+  }
+  .listings-table td {
+    display: block;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--paper-100);
+    font-size: var(--fs-sm);
+  }
+  .listings-table td:last-child { border-bottom: none; }
+
+  /* ── Owner: add-vehicle inline grids ── */
+  .form-card .col > div { grid-template-columns: 1fr !important; }
+
+  /* ── Owner: reminders card ── */
+  .rem-card { grid-template-columns: 1fr !important; }
+
+  /* ── Mechanic dashboard stats ── */
+  .stats-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Mechanic verify upload grid ── */
+  .upload-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Mechanic pending card ── */
+  .pending-card { padding: 24px 16px !important; }
+
+  /* ── Chat inbox: filter pills scroll ── */
+  .filters { overflow-x: auto; width: 100%; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .filters::-webkit-scrollbar { display: none; }
+
+  /* ── Chat bubbles ── */
+  .bubble { max-width: 85%; }
+
+  /* ── Chat detail: compose area ── */
+  .chat-stream { padding: 16px 12px; }
+  .chat-composer { padding: 10px 12px; }
+
+  /* ── Offer card full width on mobile ── */
+  .offer-card { max-width: 100%; }
+
+  /* ── Generic .tbl: scrollable on mobile ── */
+  .tbl { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Admin verifications: table scroll wrapper + drawer ── */
+  .panel-dark { overflow-x: auto; }
+  .vq-table { min-width: 600px; }
+  .drawer__panel { max-width: 100% !important; padding: 20px 16px; overflow-y: auto; }
+
+  /* ── Admin analytics: grid padding ── */
+  .grid-2 { gap: 12px; }
+
+  /* ── General: full-width forms ── */
+  .field, .input, select.input, textarea.input { width: 100%; max-width: 100%; }
+
+  /* ── Pay modal sheet full width ── */
+  .pay-modal__sheet { border-radius: 20px 20px 0 0; padding: 24px 18px 40px; }
+
+  /* ── Buyer browse: tap targets ── */
+  .filter-toggle-mobile { height: 44px !important; }
+  .app-search { max-width: 100%; min-width: 0; }
+
+  /* ── Mechanic account: readonly rows wrap ── */
+  .readonly-row { flex-wrap: wrap; gap: 4px; }
+
+}

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Deal complete · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  body { background: var(--paper-50); }
+  .closed-page { max-width: 720px; margin: 0 auto; padding: 28px 24px 96px; }
+  .closed-hero {
+    text-align: center; padding: 56px 32px 40px;
+    background: radial-gradient(circle at 50% 0%, #f0fdf4 0%, transparent 60%), linear-gradient(180deg, #fff, var(--paper-50));
+    border: var(--border-hair); border-radius: var(--r-2xl); position: relative; overflow: hidden;
+  }
+  .closed-hero::before {
+    content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, transparent, #22c55e, transparent);
+  }
+  .closed-check {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #15803d);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 22px;
+    box-shadow: 0 16px 40px -12px rgba(34,197,94,0.5), 0 0 0 6px #fff, 0 0 0 7px rgba(34,197,94,0.18);
+    animation: pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform: scale(0.5); opacity: 0;
+  }
+  @keyframes pop { to { transform: scale(1); opacity: 1; } }
+  .closed-hero h1 { font-size: clamp(32px, 4.6vw, 56px); letter-spacing:-0.025em; line-height: 1.05; }
+  .closed-hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #15803d; }
+  .closed-hero p { color: var(--paper-700); margin-top: 10px; font-size: var(--fs-md); }
+
+  .summary-card {
+    margin-top: 18px; padding: 24px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+  }
+  .summary-row { display: flex; justify-content: space-between; padding: 11px 0; font-size: var(--fs-sm); border-bottom: 1px dashed var(--paper-150); }
+  .summary-row:last-of-type { border-bottom: none; }
+  .summary-row .lbl { color: var(--paper-500); }
+  .summary-row .val { color: var(--ink-900); font-weight: 600; }
+  .summary-row .val--lg { font-family: var(--font-mono); font-size: 22px; font-weight: 700; }
+
+  .timeline { margin-top: 18px; padding: 22px; background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); }
+  .timeline-item { display: flex; gap: 14px; padding: 8px 0; }
+  .timeline-item__dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink:0; display: inline-flex; align-items:center; justify-content:center; font-size: 11px; font-weight: 700; background: var(--ok-500); color: #fff; }
+  .timeline-item__main { flex: 1; }
+  .timeline-item__title { font-weight: 600; color: var(--ink-900); font-size: var(--fs-sm); }
+  .timeline-item__sub { font-size: 11px; color: var(--paper-500); margin-top: 1px; }
+
+  .review-card {
+    margin-top: 18px; padding: 24px;
+    background: linear-gradient(180deg, #f5f3ff, #fff); border: 1px solid #ddd6fe;
+    border-radius: var(--r-lg);
+  }
+  .stars { display: flex; gap: 4px; margin: 10px 0 16px; }
+  .star { width: 36px; height: 36px; cursor: pointer; color: #f59e0b; }
+  .review-card textarea {
+    width: 100%; min-height: 88px; padding: 12px 14px;
+    border: var(--border-hair); border-radius: 12px; font: inherit; font-size: var(--fs-sm);
+    background: rgba(255,255,255,0.6); resize: vertical; outline: none;
+  }
+  .review-card textarea:focus { border-color: var(--brand-500); background: #fff; }
+</style></head>
+<body>
+<div class="app-shell">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--ghost btn--sm" href="/app/chat/index.html">← Back to messages</a>
+  </div>
+</header>
+
+<main class="closed-page">
+  <section class="closed-hero">
+    <div class="closed-check"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,12 10,17 19,7"/></svg></div>
+    <span class="kicker" style="color: #15803d;">Deal closed · funds released</span>
+    <h1 style="margin-top: 14px;">You sold your Corolla.<br><em>Mabrook!</em></h1>
+    <p>Funds have been released to your HBL account ending in 4892. Buyer received the keys at 14:32.</p>
+  </section>
+
+  <section class="summary-card am-rise" data-d="1">
+    <div class="row gap-3" style="margin-bottom: 18px; align-items: center;">
+      <div style="width:80px; height:60px; border-radius:10px; overflow:hidden;"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+      <div style="flex:1;">
+        <div style="font-size:var(--fs-xs); color:var(--paper-500); text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Sold to Ahmed M.</div>
+        <h3 style="font-size:var(--fs-lg); margin-top: 2px;">2021 Toyota Corolla Altis 1.6</h3>
+        <div style="color:var(--paper-500); font-size:var(--fs-xs);">38,200 km · Bahria Town · Auto</div>
+      </div>
+    </div>
+    <div class="summary-row"><span class="lbl">Sale price</span><span class="val val--lg">PKR 51.5 L</span></div>
+    <div class="summary-row"><span class="lbl">AutoMart Escrow fee</span><span class="val">PKR 12,500</span></div>
+    <div class="summary-row"><span class="lbl">Net to seller</span><span class="val" style="color: var(--ok-700);">PKR 51,37,500</span></div>
+    <div class="summary-row"><span class="lbl">Released to</span><span class="val">HBL •••• 4892</span></div>
+    <div class="summary-row"><span class="lbl">Transaction ID</span><span class="val" style="font-family: var(--font-mono); font-size: 11px;">AM-DH-7K2P-9XQ4</span></div>
+  </section>
+
+  <section class="timeline am-rise" data-d="2">
+    <h4 style="font-weight:700; margin-bottom: 12px;">Deal timeline</h4>
+    <div class="timeline-item"><span class="timeline-item__dot">1</span><div class="timeline-item__main"><div class="timeline-item__title">Offer accepted</div><div class="timeline-item__sub">Aug 14, 16:42 — PKR 51.5L</div></div></div>
+    <div class="timeline-item"><span class="timeline-item__dot">2</span><div class="timeline-item__main"><div class="timeline-item__title">Funds escrowed</div><div class="timeline-item__sub">Aug 15, 09:15 — Cleared by buyer's bank</div></div></div>
+    <div class="timeline-item"><span class="timeline-item__dot">3</span><div class="timeline-item__main"><div class="timeline-item__title">Inspection passed</div><div class="timeline-item__sub">Aug 16, 11:28 — Inspector: Aizaz K.</div></div></div>
+    <div class="timeline-item"><span class="timeline-item__dot">4</span><div class="timeline-item__main"><div class="timeline-item__title">Handover & funds released</div><div class="timeline-item__sub">Aug 17, 14:32 — Today</div></div></div>
+  </section>
+
+  <section class="review-card am-rise" data-d="3">
+    <span class="kicker" style="color:#7c3aed;">Last step</span>
+    <h3 style="font-size: var(--fs-lg); margin-top: 6px;">How was your experience with Ahmed?</h3>
+    <p style="font-size:var(--fs-sm); color:var(--paper-700); margin-top: 4px;">Honest reviews keep AutoMart trustworthy. Yours will be visible on Ahmed's profile.</p>
+
+    <div class="stars">
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+    </div>
+
+    <textarea placeholder="What went well? Anything to flag for future buyers?"></textarea>
+
+    <div style="display:flex; gap:8px; margin-top: 14px; flex-wrap:wrap;">
+      <button class="qr-pill" style="padding: 6px 12px; background: rgba(255,255,255,0.7); border: var(--border-hair); border-radius: 999px; font-size: var(--fs-xs); cursor: pointer;">+ Honest</button>
+      <button class="qr-pill" style="padding: 6px 12px; background: rgba(255,255,255,0.7); border: var(--border-hair); border-radius: 999px; font-size: var(--fs-xs); cursor: pointer;">+ On time</button>
+      <button class="qr-pill" style="padding: 6px 12px; background: rgba(255,255,255,0.7); border: var(--border-hair); border-radius: 999px; font-size: var(--fs-xs); cursor: pointer;">+ Smooth payment</button>
+    </div>
+
+    <div class="row gap-2" style="margin-top: 18px;">
+      <button class="btn btn--ghost">Skip for now</button>
+      <button class="btn btn--primary" style="margin-left: auto;">Submit review</button>
+    </div>
+  </section>
+
+  <div class="row gap-2 mt-8">
+    <a href="/app/seller/new.html" class="btn btn--ghost">List another car</a>
+    <a href="/app/seller/index.html" class="btn btn--ghost">Back to dashboard</a>
+    <a href="#" style="margin-left:auto; font-size: var(--fs-sm); color: var(--paper-500);">Download invoice ↓</a>
+  </div>
+</main>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, formatPKR } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+const params = new URLSearchParams(location.search);
+const convId = params.get('id');
+if (!convId) { window.location.replace('/app/chat/index.html'); }
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); }
+const [{ data: conv }, { data: deal }] = await Promise.all([
+  supabase.from('conversations').select('*, listings(id,make,model,variant,year,mileage,city,transmission,primary_photo_url,price_minor), buyer:profiles!conversations_buyer_id_fkey(id,display_name), seller:profiles!conversations_seller_id_fkey(id,display_name)').eq('id',convId).single(),
+  supabase.from('deals').select('*').eq('conversation_id',convId).maybeSingle()
+]);
+if (!conv) {
+  document.querySelector('main').innerHTML = '<p style="padding:32px;text-align:center;color:var(--paper-500);">Deal not found.</p>';
+} else {
+  const isSeller = conv.seller_id === user.id;
+  const listing = conv.listings || {};
+  const buyer = conv.buyer || {}; const seller = conv.seller || {};
+  const other = isSeller ? buyer : seller;
+  const finalPrice = deal?.final_price_minor || listing.price_minor || 0;
+  const closedAt = deal?.closed_at || (conv.buyer_confirmed_at && conv.seller_confirmed_at ? (new Date(conv.buyer_confirmed_at) > new Date(conv.seller_confirmed_at) ? conv.buyer_confirmed_at : conv.seller_confirmed_at) : conv.seller_confirmed_at || conv.buyer_confirmed_at);
+  const fmt = ts => new Date(ts).toLocaleDateString('en-PK',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const carName = `${listing.year||''} ${listing.make||''} ${listing.model||''}${listing.variant?' '+listing.variant:''}`.trim();
+  document.querySelector('.closed-hero h1').innerHTML = isSeller
+    ? `You sold your ${listing.make||'car'}.<br><em>Mabrook!</em>`
+    : `You bought the ${listing.make||'car'}.<br><em>Mabrook!</em>`;
+  document.querySelector('.closed-hero p').textContent = isSeller
+    ? `Funds released to your account. Buyer: ${buyer.display_name||'Unknown'}.`
+    : `Deal confirmed. Seller: ${seller.display_name||'Unknown'}.`;
+  const sc = document.querySelector('.summary-card');
+  const topRow = sc.querySelector('.row.gap-3');
+  const textBox = topRow.children[1];
+  const imgBox = topRow.querySelector('.imgslot');
+  if (listing.primary_photo_url) imgBox.innerHTML = `<img src="${listing.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;">`;
+  textBox.children[0].textContent = isSeller ? `Sold to ${buyer.display_name||'Buyer'}` : `Bought from ${seller.display_name||'Seller'}`;
+  textBox.querySelector('h3').textContent = carName;
+  textBox.children[textBox.children.length-1].textContent = `${(listing.mileage||0).toLocaleString()} km · ${listing.city||''} · ${listing.transmission||'Auto'}`;
+  const vals = sc.querySelectorAll('.summary-row .val');
+  if (vals[0]) vals[0].textContent = formatPKR(finalPrice);
+  if (vals[4]) vals[4].textContent = deal?.id ? 'AM-'+deal.id.slice(0,8).toUpperCase() : '—';
+  const items = document.querySelectorAll('.timeline-item');
+  if (items[0] && deal?.created_at) items[0].querySelector('.timeline-item__sub').textContent = fmt(deal.created_at)+' — '+formatPKR(finalPrice);
+  if (items[1] && conv.buyer_confirmed_at) { items[1].querySelector('.timeline-item__title').textContent = 'Buyer confirmed handover'; items[1].querySelector('.timeline-item__sub').textContent = fmt(conv.buyer_confirmed_at); }
+  if (items[2] && conv.seller_confirmed_at) { items[2].querySelector('.timeline-item__title').textContent = 'Seller confirmed handover'; items[2].querySelector('.timeline-item__sub').textContent = fmt(conv.seller_confirmed_at); }
+  if (items[3] && closedAt) items[3].querySelector('.timeline-item__sub').textContent = fmt(closedAt);
+  const rc = document.querySelector('.review-card');
+  rc.querySelector('h3').textContent = `How was your experience with ${other.display_name||'them'}?`;
+  rc.querySelector('p').textContent = `Honest reviews keep AutoMart trustworthy. Yours will be visible on ${other.display_name||"their"}'s profile.`;
+  const { data: existRev } = await supabase.from('reviews').select('id').eq('reviewer_id',user.id).eq('conversation_id',convId).maybeSingle();
+  if (existRev) {
+    rc.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ok-700);font-weight:600;">✓ Review already submitted. Thank you!</div>';
+  } else {
+    rc.querySelector('textarea').value = '';
+    let selStar = 5;
+    const stars = rc.querySelectorAll('.star');
+    stars.forEach((s,i) => {
+      s.addEventListener('mouseenter', () => stars.forEach((ss,j) => ss.style.color = j<=i?'#f59e0b':'#e2e8f0'));
+      s.addEventListener('click', () => { selStar=i+1; stars.forEach((ss,j) => ss.style.color = j<selStar?'#f59e0b':'#e2e8f0'); });
+    });
+    rc.querySelector('.stars').addEventListener('mouseleave', () => stars.forEach((ss,j) => ss.style.color = j<selStar?'#f59e0b':'#e2e8f0'));
+    rc.querySelectorAll('.qr-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const ta = rc.querySelector('textarea');
+        const tag = pill.textContent.replace(/^\+\s*/,'');
+        ta.value = ta.value ? ta.value+' '+tag : tag;
+      });
+    });
+    rc.querySelector('.btn--primary')?.addEventListener('click', async () => {
+      const comment = rc.querySelector('textarea').value.trim();
+      await supabase.from('reviews').insert({ reviewer_id:user.id, reviewee_id:other.id, listing_id:listing.id, conversation_id:convId, rating:selStar, comment });
+      rc.innerHTML = '<div style="padding:24px;text-align:center;"><div style="font-size:48px;">⭐</div><h3 style="color:var(--ok-700);margin-top:12px;">Review submitted!</h3><p style="font-size:var(--fs-sm);color:var(--paper-500);margin-top:6px;">Thank you for keeping AutoMart trustworthy.</p></div>';
+    });
+    rc.querySelector('.btn--ghost')?.addEventListener('click', () => window.location.href = isSeller?'/app/seller/index.html':'/app/buyer/index.html');
+  }
+}
+})();
+</script>
+</body></html>

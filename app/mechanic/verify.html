@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Register your workshop · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .vfy { max-width: 680px; margin: 0 auto; padding: 40px 24px 96px; }
+  .vfy-hero { padding: 32px; border-radius: var(--r-2xl); background: linear-gradient(160deg, #eff6ff, #fff 60%); border: 1px solid #bfdbfe; margin-bottom: 28px; }
+  .vfy-hero h1 { font-size: clamp(24px, 3vw, 36px); letter-spacing: -0.02em; line-height: 1.15; margin-top: 10px; }
+  .vfy-hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #1d4ed8; }
+  .vfy-hero p { color: var(--paper-600); margin-top: 10px; line-height: 1.6; font-size: var(--fs-sm); }
+
+  .form-card { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); padding: 28px; margin-bottom: 16px; }
+  .form-card__title { font-weight: 700; color: var(--ink-900); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .form-card__title .num { width: 26px; height: 26px; border-radius: 50%; background: var(--ink-900); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); flex-shrink: 0; }
+
+  .upload-zone {
+    border: 1.5px dashed var(--paper-200); border-radius: 12px;
+    padding: 24px 16px; text-align: center; background: var(--paper-50);
+    cursor: pointer; transition: all var(--dur);
+  }
+  .upload-zone:hover { border-color: var(--brand-400); background: var(--brand-50); }
+  .upload-zone strong { display: block; font-size: var(--fs-sm); color: var(--ink-900); margin-top: 8px; }
+  .upload-zone span { font-size: 11px; color: var(--paper-400); }
+  .upload-zone svg { color: var(--paper-300); }
+  .upload-zone.done { border-color: var(--ok-200); background: var(--ok-50); border-style: solid; }
+  .upload-zone.done strong { color: var(--ok-700); }
+  .upload-zone.uploading { opacity: 0.6; pointer-events: none; }
+
+  .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .upload-grid { grid-template-columns: 1fr; } }
+
+  .cnic-input { font-family: var(--font-mono); letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh; background: var(--paper-50);">
+  <header style="background:var(--paper-0); border-bottom: var(--border-hair); padding: 0 24px;">
+    <div style="max-width:680px; margin:0 auto; height:60px; display:flex; align-items:center; justify-content:space-between;">
+      <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span>AutoCare</span></a>
+      <span style="font-size: var(--fs-xs); color: var(--paper-400);">Step 1 of 1</span>
+    </div>
+  </header>
+
+  <main class="vfy">
+    <div class="vfy-hero am-rise">
+      <span class="kicker" style="color:#1d4ed8;">Mechanic Registration</span>
+      <h1>Register your <em>workshop</em>.</h1>
+      <p>Once verified by our team, you'll be able to scan vehicle QR codes and log certified service records that boost owner trust and resale value.</p>
+    </div>
+
+    <form id="vfy-form" novalidate>
+
+      <!-- Section 1: Workshop info -->
+      <div class="form-card am-rise" data-d="1">
+        <div class="form-card__title"><span class="num">1</span> Workshop details</div>
+        <div class="col" style="gap:14px;">
+          <div class="field">
+            <label class="field__label" for="workshop-name">Workshop name</label>
+            <input id="workshop-name" class="input" type="text" placeholder="e.g. Al-Rehman Auto Workshop" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="workshop-address">Address</label>
+            <input id="workshop-address" class="input" type="text" placeholder="Street address" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="workshop-city">City</label>
+            <select id="workshop-city" class="select" required>
+              <option value="">Select city…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="mechanic-phone">Contact phone</label>
+            <div class="input-affix">
+              <span class="input-affix__lead mono">🇵🇰&nbsp;+92</span>
+              <input id="mechanic-phone" class="input" type="tel" inputmode="numeric" placeholder="3XX XXX XXXX" required>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: CNIC -->
+      <div class="form-card am-rise" data-d="2">
+        <div class="form-card__title"><span class="num">2</span> CNIC number</div>
+        <div class="field">
+          <label class="field__label" for="cnic-number">CNIC</label>
+          <input id="cnic-number" class="input cnic-input" type="text" inputmode="numeric" placeholder="00000-0000000-0" maxlength="15" required>
+          <span class="field__hint">Format: 00000-0000000-0 (as printed on your CNIC)</span>
+        </div>
+      </div>
+
+      <!-- Section 3: Documents -->
+      <div class="form-card am-rise" data-d="3">
+        <div class="form-card__title"><span class="num">3</span> Documents &amp; photos</div>
+        <p style="font-size:var(--fs-sm); color:var(--paper-500); margin-bottom:18px; line-height:1.6;">All documents are encrypted and never shared publicly. We only verify your identity.</p>
+
+        <div class="upload-grid" style="margin-bottom:12px;">
+          <div class="upload-zone" id="zone-cnic-front">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h5M7 11h10"/></svg>
+            <strong>CNIC front</strong>
+            <span>JPG or PNG · max 5MB</span>
+          </div>
+          <div class="upload-zone" id="zone-cnic-back">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h10M7 11h5"/></svg>
+            <strong>CNIC back</strong>
+            <span>JPG or PNG · max 5MB</span>
+          </div>
+        </div>
+
+        <div class="upload-zone" id="zone-selfie" style="margin-bottom:12px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></svg>
+          <strong>Selfie holding your CNIC</strong>
+          <span>Must clearly show your face and CNIC together</span>
+        </div>
+
+        <div class="upload-zone" id="zone-workshop">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <strong>Workshop photo</strong>
+          <span>Front of your workshop / signboard</span>
+        </div>
+      </div>
+
+      <div id="form-error" style="display:none; padding:12px 14px; background:var(--bad-50); border:1px solid var(--bad-100); border-radius:10px; color:var(--bad-700); font-size:var(--fs-sm); margin-bottom:16px;"></div>
+
+      <button class="btn btn--primary btn--lg btn--block am-rise" data-d="4" type="submit">
+        Submit for review
+        <span data-icon="arrow-r" data-size="18"></span>
+      </button>
+
+      <p class="text-c" style="font-size:var(--fs-xs); color:var(--paper-400); margin-top:16px;">
+        Our team reviews applications within 24 hours.
+        <a href="#" style="color:var(--brand-700);">Privacy policy →</a>
+      </p>
+    </form>
+  </main>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile, PAKISTAN_CITIES } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  const profile = await getUserProfile();
+  if (!user || !profile) { window.location.href = '/app/login.html'; return; }
+
+  // Check existing application
+  const { data: existing } = await supabase.from('mechanic_profiles').select('id, status, rejection_reason, workshop_name, address, city, phone, cnic_number').eq('user_id', user.id).maybeSingle();
+  if (existing?.status === 'pending' || existing?.status === 'approved') {
+    window.location.href = '/app/mechanic/pending.html'; return;
+  }
+  if (existing?.status === 'rejected') {
+    const reason = existing.rejection_reason || 'No reason provided.';
+    const banner = document.createElement('div');
+    banner.style.cssText = 'padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;margin-bottom:20px;';
+    banner.innerHTML = `<div style="font-weight:700;color:#dc2626;margin-bottom:4px;">Your previous application was rejected</div><div style="font-size:var(--fs-sm);color:#b91c1c;line-height:1.5;">${reason}</div><div style="font-size:11px;color:#ef4444;margin-top:6px;">Please fix the issues below and resubmit.</div>`;
+    document.getElementById('vfy-form').prepend(banner);
+  }
+
+  // Populate cities
+  const citySelect = document.getElementById('workshop-city');
+  PAKISTAN_CITIES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; citySelect.appendChild(o); });
+
+  // Pre-fill from rejected application
+  if (existing?.status === 'rejected') {
+    if (existing.workshop_name) document.getElementById('workshop-name').value = existing.workshop_name;
+    if (existing.address) document.getElementById('workshop-address').value = existing.address;
+    if (existing.city) citySelect.value = existing.city;
+    if (existing.phone) document.getElementById('mechanic-phone').value = existing.phone.replace(/^\+92/, '');
+    if (existing.cnic_number) document.getElementById('cnic-number').value = existing.cnic_number;
+  }
+
+  // CNIC auto-format
+  const cnicInput = document.getElementById('cnic-number');
+  cnicInput.addEventListener('input', () => {
+    let v = cnicInput.value.replace(/\D/g, '');
+    if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+    if (v.length > 13) v = v.slice(0,13) + '-' + v.slice(13);
+    cnicInput.value = v.slice(0,15);
+  });
+
+  // Upload state
+  const uploads = { cnic_front: null, cnic_back: null, selfie: null, workshop: null };
+
+  function makeFileInput(accept, cb) {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = accept; inp.style.display = 'none';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', () => { if (inp.files[0]) cb(inp.files[0]); inp.value = ''; });
+    return inp;
+  }
+
+  async function uploadFile(file, slot) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${user.id}/${slot}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('mechanic-docs').upload(path, file, { upsert: true });
+    if (error) throw error;
+    return path;
+  }
+
+  function setZoneDone(zone, label, filename) {
+    zone.className = 'upload-zone done';
+    zone.innerHTML = `
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ok-500)" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+      <strong>${label} ✓</strong>
+      <span>${filename}</span>`;
+  }
+
+  function bindZone(zoneId, slot, label) {
+    const zone = document.getElementById(zoneId);
+    const inp = makeFileInput('image/jpeg,image/png,image/webp', async file => {
+      zone.className = 'upload-zone uploading';
+      zone.querySelector('strong').textContent = 'Uploading…';
+      try {
+        uploads[slot] = await uploadFile(file, slot);
+        setZoneDone(zone, label, file.name);
+      } catch (err) {
+        zone.className = 'upload-zone';
+        zone.querySelector('strong').textContent = 'Upload failed — tap to retry';
+        zone.querySelector('span').textContent = err.message;
+      }
+    });
+    zone.addEventListener('click', () => inp.click());
+  }
+
+  bindZone('zone-cnic-front', 'cnic_front', 'CNIC front');
+  bindZone('zone-cnic-back',  'cnic_back',  'CNIC back');
+  bindZone('zone-selfie',     'selfie',     'Selfie');
+  bindZone('zone-workshop',   'workshop',   'Workshop photo');
+
+  function showError(msg) {
+    const el = document.getElementById('form-error');
+    el.textContent = msg; el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearError() { document.getElementById('form-error').style.display = 'none'; }
+
+  document.getElementById('vfy-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    clearError();
+
+    const workshopName = document.getElementById('workshop-name').value.trim();
+    const address      = document.getElementById('workshop-address').value.trim();
+    const city         = document.getElementById('workshop-city').value;
+    const phone        = '+92' + document.getElementById('mechanic-phone').value.trim().replace(/\s/g, '');
+    const cnic         = document.getElementById('cnic-number').value.trim();
+
+    if (!workshopName || !address || !city || !phone || !cnic) {
+      showError('Please fill in all required fields.'); return;
+    }
+    if (!/^\d{5}-\d{7}-\d$/.test(cnic)) {
+      showError('CNIC must be in format: 00000-0000000-0'); return;
+    }
+    if (!uploads.cnic_front || !uploads.cnic_back || !uploads.selfie || !uploads.workshop) {
+      showError('Please upload all 4 required photos.'); return;
+    }
+
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    // Geocode address
+    let lat = null, lng = null;
+    try {
+      const geo = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address + ', ' + city + ', Pakistan')}`,
+        { headers: { 'Accept-Language': 'en', 'User-Agent': 'AutoCare-App/1.0' } }
+      ).then(r => r.json());
+      if (geo?.length) { lat = parseFloat(geo[0].lat); lng = parseFloat(geo[0].lon); }
+    } catch (_) {}
+
+    const payload = {
+      user_id:            user.id,
+      workshop_name:      workshopName,
+      address,
+      city,
+      phone,
+      cnic_number:        cnic,
+      cnic_front_url:     uploads.cnic_front,
+      cnic_back_url:      uploads.cnic_back,
+      selfie_url:         uploads.selfie,
+      workshop_photo_url: uploads.workshop,
+      status:             'pending',
+      rejection_reason:   null,
+      lat,
+      lng,
+    };
+    const { error } = existing
+      ? await supabase.from('mechanic_profiles').update(payload).eq('id', existing.id)
+      : await supabase.from('mechanic_profiles').insert(payload);
+
+    if (error) {
+      showError('Submission failed: ' + error.message);
+      btn.disabled = false; btn.textContent = 'Submit for review';
+      return;
+    }
+
+    window.location.href = '/app/mechanic/pending.html';
+  });
+})();
+</script>
+</body>
+</html>

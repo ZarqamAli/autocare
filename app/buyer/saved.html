@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Saved cars · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .saved-page { max-width: var(--container); margin: 0 auto; padding: 32px 24px 96px; }
+  .grid-cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .alert-row {
+    display:flex; align-items:center; gap:14px; padding:14px 18px;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    margin-bottom: 12px;
+  }
+  .alert-row__icon { width:40px; height:40px; border-radius:10px; background:var(--ok-50); color:var(--ok-700); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+</style></head>
+<body>
+<div class="app-shell with-tabbar">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/buyer/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link" href="/app/buyer/index.html">Browse</a>
+      <a class="appbar__link" href="/app/buyer/ai.html">AI Search</a>
+      <a class="appbar__link appbar__link--active" href="/app/buyer/saved.html">Saved</a>
+    </nav>
+    <div class="appbar__right">
+      <a class="iconbtn" href="/app/chat/index.html"><span data-icon="chat" data-size="18"></span><span class="iconbtn__badge">3</span></a>
+      <a href="/app/buyer/account.html" class="avatar">A</a>
+    </div>
+  </div>
+</header>
+
+<main class="saved-page">
+  <div class="section-head am-rise">
+    <div>
+      <span class="kicker">Your shortlist</span>
+      <h1 style="margin-top:8px;">Saved cars <span style="font-family:var(--font-mono); color:var(--paper-500); font-size:var(--fs-lg); font-weight:500;">· 7</span></h1>
+      <p class="section-head__sub">We watch these for price changes and notify you the moment something moves.</p>
+    </div>
+    <div class="row gap-2">
+      <select class="select" style="height:40px; width:auto;">
+        <option>All saved</option>
+        <option>Price drops</option>
+        <option>Active only</option>
+        <option>Sold</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="alert-row am-rise" data-d="1">
+    <div class="alert-row__icon"><span data-icon="bell" data-size="20"></span></div>
+    <div style="flex:1;">
+      <div style="font-weight:700; color:var(--ink-900); margin-bottom:2px;">Price drop alert · 2 cars cheaper today</div>
+      <div style="font-size:var(--fs-sm); color:var(--paper-500);">Honda City Aspire dropped 1.2L. Suzuki Swift dropped 80K.</div>
+    </div>
+    <button class="btn btn--ghost btn--sm">View drops</button>
+  </div>
+
+  <div class="grid-cards">
+    <a class="lcard am-rise" data-d="2" href="#">
+      <div class="lcard__media">
+        <div class="imgslot" data-aspect="4/3"><div class="imgslot__car"></div><span class="imgslot__label">City Aspire · 2019</span></div>
+        <button class="lcard__heart" aria-pressed="true"><span data-icon="heart-fill" data-size="18"></span></button>
+        <div class="lcard__pills"><span class="pill pill--bad">↓ PKR 1.2L</span></div>
+      </div>
+      <div class="lcard__body">
+        <div class="lcard__title-row">
+          <div class="lcard__title">Honda City Aspire 1.5</div>
+          <div style="text-align:right;">
+            <div class="lcard__price">35.3 L</div>
+            <div style="font-size:11px; color:var(--paper-400); text-decoration:line-through; font-family:var(--font-mono);">36.5 L</div>
+          </div>
+        </div>
+        <div class="lcard__meta"><span>2019</span><i></i><span>52,900 km</span><i></i><span>Lahore</span></div>
+        <div class="lcard__foot"><span style="color:var(--ok-700); font-weight:600;">Saved 4 days ago</span><span>3h ago</span></div>
+      </div>
+    </a>
+
+    <a class="lcard am-rise" data-d="2" href="#">
+      <div class="lcard__media">
+        <div class="imgslot" data-aspect="4/3"><div class="imgslot__car"></div><span class="imgslot__label">Civic Oriel · 2022</span></div>
+        <button class="lcard__heart" aria-pressed="true"><span data-icon="heart-fill" data-size="18"></span></button>
+        <div class="lcard__pills"><span class="pill pill--ai"><span data-icon="sparkle" data-size="11"></span>12% below mkt</span></div>
+      </div>
+      <div class="lcard__body">
+        <div class="lcard__title-row"><div class="lcard__title">Honda Civic Oriel UG</div><div class="lcard__price">68.5 L</div></div>
+        <div class="lcard__meta"><span>2022</span><i></i><span>24,800 km</span><i></i><span>DHA, Lahore</span></div>
+        <div class="lcard__foot"><span>Saved 1 week ago</span><span>2h ago</span></div>
+      </div>
+    </a>
+
+    <a class="lcard am-rise" data-d="3" href="#">
+      <div class="lcard__media">
+        <div class="imgslot" data-aspect="4/3"><div class="imgslot__car"></div><span class="imgslot__label">Corolla Altis · 2021</span></div>
+        <button class="lcard__heart" aria-pressed="true"><span data-icon="heart-fill" data-size="18"></span></button>
+        <div class="lcard__pills"><span class="pill pill--ink">Sold</span></div>
+      </div>
+      <div class="lcard__body" style="opacity:0.7;">
+        <div class="lcard__title-row"><div class="lcard__title">Toyota Corolla Altis 1.6</div><div class="lcard__price">52.8 L</div></div>
+        <div class="lcard__meta"><span>2021</span><i></i><span>38,200 km</span><i></i><span>Bahria Town</span></div>
+        <div class="lcard__foot"><span style="color:var(--paper-500);">Sold via AutoMart</span><span>5d ago</span></div>
+      </div>
+    </a>
+
+    <a class="lcard am-rise" data-d="3" href="#">
+      <div class="lcard__media">
+        <div class="imgslot" data-aspect="4/3"><div class="imgslot__car"></div><span class="imgslot__label">Swift GLX · 2020</span></div>
+        <button class="lcard__heart" aria-pressed="true"><span data-icon="heart-fill" data-size="18"></span></button>
+        <div class="lcard__pills"><span class="pill pill--bad">↓ PKR 80K</span></div>
+      </div>
+      <div class="lcard__body">
+        <div class="lcard__title-row"><div class="lcard__title">Suzuki Swift GLX CVT</div><div class="lcard__price">27.1 L</div></div>
+        <div class="lcard__meta"><span>2020</span><i></i><span>41,000 km</span><i></i><span>Gulberg</span></div>
+        <div class="lcard__foot"><span>Saved 2 weeks ago</span><span>6h ago</span></div>
+      </div>
+    </a>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/buyer/index.html"><span data-icon="home" data-size="20"></span>Browse</a>
+  <a href="/app/buyer/ai.html"><span data-icon="sparkle" data-size="20"></span>AI</a>
+  <a href="/app/chat/index.html" style="position:relative;"><span data-icon="chat" data-size="20"></span>Chats<span class="tabbar__badge">3</span></a>
+  <a href="/app/buyer/saved.html" aria-current="page"><span data-icon="heart-fill" data-size="20"></span>Saved</a>
+  <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  const { data: _rc } = await supabase.from('profiles').select('primary_role,is_admin').eq('id', session.user.id).maybeSingle();
+  if (_rc && _rc.primary_role !== 'buyer' && !_rc.is_admin) { window.location.replace('/app/owner/dashboard.html'); return; }
+  document.body.style.visibility = '';
+
+function formatL(minor) {
+  const pkr = minor / 100;
+  if (pkr >= 10000000) return (pkr/10000000).toFixed(2)+' Cr';
+  return (pkr/100000).toFixed(1)+' L';
+}
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-new Date(ts))/1000);
+  if (s<60) return 'just now';
+  if (s<3600) return Math.floor(s/60)+'m ago';
+  if (s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); }
+
+initUnreadBadge('.iconbtn__badge');
+
+const grid = document.querySelector('.grid-cards');
+const { data: favs } = await supabase
+  .from('favorites')
+  .select('listing_id, created_at, listings(id, make, model, variant, year, mileage, city, price_minor, primary_photo_url, status)')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false });
+
+if (!favs?.length) {
+  grid.innerHTML = '<div style="text-align:center;padding:48px;color:var(--paper-500);border:1.5px dashed var(--paper-200);border-radius:var(--r-lg);grid-column:1/-1;"><div style="font-size:32px;margin-bottom:12px;">♡</div><strong>No saved cars yet</strong><p style="margin-top:6px;font-size:var(--fs-sm);">Heart a listing to save it here.</p><a href="/app/buyer/index.html" class="btn btn--primary" style="display:inline-flex;margin-top:16px;">Browse cars</a></div>';
+  document.querySelector('.alert-row').style.display = 'none';
+  document.querySelector('h1 span').textContent = '· 0';
+} else {
+  document.querySelector('h1 span').textContent = `· ${favs.length}`;
+  grid.innerHTML = favs.map(f => {
+    const l = f.listings;
+    if (!l) return '';
+    const isSold = l.status === 'sold';
+    return `<div class="lcard am-rise">
+      <a href="/app/listing/detail.html?id=${l.id}" style="display:contents;">
+        <div class="lcard__media">
+          <div class="imgslot" data-aspect="4/3">${l.primary_photo_url ? `<img src="${l.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div class="imgslot__car"></div>'}<span class="imgslot__label">${l.make} ${l.model} · ${l.year}</span></div>
+          <button class="lcard__heart" aria-pressed="true" data-lid="${l.id}" style="z-index:2;position:absolute;top:10px;right:10px;"><span data-icon="heart-fill" data-size="18"></span></button>
+          ${isSold ? '<div class="lcard__pills"><span class="pill pill--ink">Sold</span></div>' : ''}
+        </div>
+        <div class="lcard__body" ${isSold ? 'style="opacity:0.7;"' : ''}>
+          <div class="lcard__title-row"><div class="lcard__title">${l.make} ${l.model}${l.variant?' '+l.variant:''}</div><div class="lcard__price">${formatL(l.price_minor)}</div></div>
+          <div class="lcard__meta"><span>${l.year}</span><i></i><span>${(l.mileage||0).toLocaleString()} km</span><i></i><span>${l.city||''}</span></div>
+          <div class="lcard__foot"><span ${isSold ? 'style="color:var(--paper-500);"' : 'style="color:var(--ok-700);"'}>Saved ${timeAgo(f.created_at)}</span></div>
+        </div>
+      </a>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.lcard__heart').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.preventDefault(); e.stopPropagation();
+      const lid = btn.dataset.lid;
+      await supabase.from('favorites').delete().eq('user_id', user.id).eq('listing_id', lid);
+      const card = btn.closest('.lcard');
+      card.style.transition = 'opacity .2s'; card.style.opacity = '0';
+      setTimeout(() => { card.remove(); const rem = grid.querySelectorAll('.lcard').length; document.querySelector('h1 span').textContent = `· ${rem}`; }, 200);
+    });
+  });
+  if (typeof AMIcon !== 'undefined') AMIcon.mountAll();
+}
+})();
+</script>
+</body></html>

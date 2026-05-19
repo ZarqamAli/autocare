@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Service Passport · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .sp { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  .sp-header { text-align: center; margin-bottom: 32px; }
+  .sp-header .brand { justify-content: center; margin-bottom: 20px; }
+  .sp-title { font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.025em; margin-bottom: 6px; }
+  .sp-title em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .sp-sub { color: var(--paper-500); font-size: var(--fs-sm); }
+
+  .stolen-alert {
+    background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: var(--r-lg);
+    padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .stolen-alert__icon { width: 40px; height: 40px; border-radius: 50%; background: #dc2626; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .stolen-alert strong { color: #dc2626; display: block; margin-bottom: 4px; }
+  .stolen-alert p { color: #b91c1c; font-size: var(--fs-sm); margin: 0; line-height: 1.5; }
+
+  .vehicle-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl);
+    padding: 24px; margin-bottom: 20px;
+  }
+  .vehicle-card__head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .vehicle-card__title { font-size: var(--fs-2xl); font-weight: 800; letter-spacing: -0.02em; color: var(--ink-900); margin-bottom: 6px; }
+  .vehicle-card__meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: var(--fs-sm); color: var(--paper-600); }
+  .meta-tag { background: var(--paper-100); border-radius: 6px; padding: 3px 9px; font-size: 12px; }
+  .meta-tag--mono { font-family: var(--font-mono); font-size: 11px; }
+
+  .score-ring {
+    flex-shrink: 0; width: 80px; height: 80px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 3px solid var(--paper-150);
+  }
+  .score-ring.good  { border-color: #86efac; background: #f0fdf4; }
+  .score-ring.ok    { border-color: #fde68a; background: #fefce8; }
+  .score-ring.bad   { border-color: #fca5a5; background: #fef2f2; }
+  .score-ring__num  { font-family: var(--font-mono); font-size: 22px; font-weight: 800; line-height: 1; }
+  .score-ring__lbl  { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--paper-500); margin-top: 2px; }
+  .score-none { color: var(--paper-400); font-size: var(--fs-xs); text-align: center; line-height: 1.4; }
+
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
+    color: var(--paper-400); margin: 28px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--paper-150); }
+
+  .log-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    padding: 18px 20px; margin-bottom: 12px; position: relative;
+    border-left: 3px solid var(--brand-400);
+  }
+  .log-card__date { font-family: var(--font-mono); font-size: 11px; color: var(--paper-400); margin-bottom: 6px; }
+  .log-card__workshop { font-weight: 700; color: var(--ink-900); margin-bottom: 6px; }
+  .log-card__types { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .log-chip { background: var(--brand-50); color: var(--brand-700); border: 1px solid var(--brand-100); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+  .log-card__details { font-size: var(--fs-sm); color: var(--paper-600); line-height: 1.6; }
+  .log-card__cost { position: absolute; top: 18px; right: 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--ink-900); }
+
+  .empty-logs { text-align: center; padding: 48px 24px; color: var(--paper-400); }
+  .empty-logs strong { display: block; color: var(--paper-600); margin-bottom: 6px; font-size: var(--fs-lg); }
+
+  .powered-by { text-align: center; margin-top: 40px; font-size: 11px; color: var(--paper-400); }
+  .powered-by a { color: var(--brand-600); font-weight: 600; }
+</style>
+</head>
+<body style="background:var(--paper-50);">
+
+<main class="sp" id="sp-main">
+  <div style="text-align:center;padding:64px;color:var(--paper-400);">Loading…</div>
+</main>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase } from '/app/shared/supabase.js';
+
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const uuid = params.get('vehicle');
+  const main = document.getElementById('sp-main');
+
+  if (!uuid) {
+    main.innerHTML = '<div style="text-align:center;padding:64px;"><h2>Invalid link</h2><p style="color:var(--paper-500);margin-top:8px;">No vehicle QR code found in this URL.</p></div>';
+    return;
+  }
+
+  // Load vehicle (public RLS allows this)
+  const { data: vehicle, error } = await supabase
+    .from('vehicles')
+    .select('*')
+    .eq('qr_code_uuid', uuid)
+    .maybeSingle();
+
+  if (error || !vehicle) {
+    main.innerHTML = '<div style="text-align:center;padding:64px;"><h2>Vehicle not found</h2><p style="color:var(--paper-500);margin-top:8px;">This QR code is not registered in AutoCare.</p></div>';
+    return;
+  }
+
+  // Load health score
+  const { data: hs } = await supabase
+    .from('health_scores')
+    .select('*')
+    .eq('vehicle_id', vehicle.id)
+    .maybeSingle();
+
+  // Load service logs with mechanic workshop name
+  const { data: logs } = await supabase
+    .from('service_logs')
+    .select('*, mechanic_profiles!service_logs_mechanic_id_fkey(workshop_name, city)')
+    .eq('vehicle_id', vehicle.id)
+    .order('logged_at', { ascending: false });
+
+  document.title = `${vehicle.year} ${vehicle.make} ${vehicle.model} · Service Passport · AutoCare`;
+
+  function scoreClass(s) { return s >= 70 ? 'good' : s >= 40 ? 'ok' : 'bad'; }
+  function scoreColor(s) { return s >= 70 ? '#15803d' : s >= 40 ? '#92400e' : '#dc2626'; }
+  function formatDate(ts) { return new Date(ts).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  function formatCost(minor) { if (!minor) return null; return '₨ ' + (minor / 100).toLocaleString('en-PK'); }
+
+  const scoreHtml = hs
+    ? `<div class="score-ring ${scoreClass(hs.score)}">
+        <div class="score-ring__num" style="color:${scoreColor(hs.score)}">${hs.score}</div>
+        <div class="score-ring__lbl">Health</div>
+       </div>`
+    : `<div class="score-ring" style="width:80px;height:80px;">
+        <div class="score-none">No<br>history<br>yet</div>
+       </div>`;
+
+  const logsHtml = logs?.length
+    ? logs.map(log => {
+        const workshop = log.mechanic_profiles?.workshop_name || 'Verified Mechanic';
+        const city = log.mechanic_profiles?.city || '';
+        const types = (log.service_types || []).map(t => `<span class="log-chip">${t}</span>`).join('');
+        const cost = formatCost(log.cost_pkr);
+        const odo = log.odometer_at_service ? `${log.odometer_at_service.toLocaleString()} km` : null;
+        const details = [odo ? `Odometer: ${odo}` : null, log.notes || null].filter(Boolean).join(' · ');
+        return `<div class="log-card">
+          ${cost ? `<div class="log-card__cost">${cost}</div>` : ''}
+          <div class="log-card__date">${formatDate(log.logged_at)}</div>
+          <div class="log-card__workshop">${workshop}${city ? ' · ' + city : ''}</div>
+          ${types ? `<div class="log-card__types">${types}</div>` : ''}
+          ${details ? `<div class="log-card__details">${details}</div>` : ''}
+        </div>`;
+      }).join('')
+    : `<div class="empty-logs">
+        <strong>No service records yet</strong>
+        <p>Service records will appear here once a verified mechanic logs them.</p>
+       </div>`;
+
+  main.innerHTML = `
+    <div class="sp-header am-rise">
+      <a class="brand brand--lg" href="/app/buyer/index.html">
+        <span class="brand__mark">A</span><span>AutoCare</span>
+      </a>
+      <div class="sp-title">${vehicle.year} ${vehicle.make} <em>${vehicle.model}</em></div>
+      <div class="sp-sub">Verified Service Passport · AutoCare Pakistan</div>
+    </div>
+
+    ${vehicle.is_stolen ? `
+    <div class="stolen-alert am-rise">
+      <div class="stolen-alert__icon">⚠</div>
+      <div>
+        <strong>This vehicle has been reported stolen</strong>
+        <p>Reported on ${vehicle.stolen_reported_at ? formatDate(vehicle.stolen_reported_at) : 'unknown date'}. Do not purchase this vehicle. Contact your nearest police station if you have information.</p>
+      </div>
+    </div>` : ''}
+
+    <div class="vehicle-card am-rise" data-d="1">
+      <div class="vehicle-card__head">
+        <div style="flex:1;">
+          <div class="vehicle-card__title">${vehicle.make} ${vehicle.model}${vehicle.variant ? ' ' + vehicle.variant : ''}</div>
+          <div class="vehicle-card__meta">
+            <span class="meta-tag">${vehicle.year}</span>
+            ${vehicle.color ? `<span class="meta-tag">${vehicle.color}</span>` : ''}
+            ${vehicle.registration_number ? `<span class="meta-tag meta-tag--mono">${vehicle.registration_number}</span>` : ''}
+            ${vehicle.current_odometer ? `<span class="meta-tag">${vehicle.current_odometer.toLocaleString()} km</span>` : ''}
+          </div>
+        </div>
+        ${scoreHtml}
+      </div>
+      ${hs?.breakdown ? `<div style="margin-top:16px;padding:14px;background:var(--paper-50);border-radius:10px;font-size:var(--fs-xs);color:var(--paper-500);">Score calculated: ${formatDate(hs.calculated_at)}</div>` : ''}
+    </div>
+
+    <div class="section-title am-rise" data-d="2">
+      Service history · ${logs?.length || 0} records
+    </div>
+
+    <div id="logs-list" class="am-rise" data-d="3">${logsHtml}</div>
+
+    <div class="powered-by">
+      Powered by <a href="/app/buyer/index.html">AutoCare Pakistan</a> · Records verified by certified mechanics
+    </div>
+  `;
+
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(main);
+})();
+</script>
+</body>
+</html>

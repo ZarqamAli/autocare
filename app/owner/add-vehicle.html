@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Add Vehicle · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .av { max-width: 640px; margin: 0 auto; padding: 32px 20px 80px; }
+  .av-head { margin-bottom: 28px; }
+  .av-head h1 { font-size: clamp(24px, 3vw, 32px); letter-spacing: -0.02em; margin-top: 8px; }
+  .av-head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+
+  .form-card { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); padding: 24px; margin-bottom: 16px; }
+  .form-card__title { font-weight: 700; color: var(--ink-900); margin-bottom: 18px; font-size: var(--fs-lg); }
+
+  .upload-zone {
+    border: 1.5px dashed var(--paper-200); border-radius: 12px;
+    padding: 28px 16px; text-align: center; background: var(--paper-50);
+    cursor: pointer; transition: all var(--dur);
+  }
+  .upload-zone:hover { border-color: var(--brand-400); background: var(--brand-50); }
+  .upload-zone.done { border-color: var(--ok-200); background: var(--ok-50); border-style: solid; }
+  .upload-zone svg { color: var(--paper-300); display: block; margin: 0 auto 8px; }
+  .upload-zone strong { display: block; font-size: var(--fs-sm); color: var(--ink-900); }
+  .upload-zone span { font-size: 11px; color: var(--paper-400); }
+
+  /* QR result panel */
+  .qr-panel {
+    display: none; text-align: center;
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl);
+    padding: 40px 28px; margin-top: 24px;
+  }
+  .qr-panel.show { display: block; }
+  .qr-panel h2 { font-size: var(--fs-2xl); letter-spacing: -0.02em; margin-bottom: 8px; }
+  .qr-panel h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--ok-700); }
+  .qr-panel p { color: var(--paper-500); font-size: var(--fs-sm); line-height: 1.6; margin-bottom: 24px; }
+  #qr-canvas-wrap { display: inline-block; padding: 16px; background: #fff; border: var(--border-hair); border-radius: 12px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh; background:var(--paper-50);">
+  <header style="background:var(--paper-0);border-bottom:var(--border-hair);padding:0 20px;">
+    <div style="max-width:640px;margin:0 auto;height:60px;display:flex;align-items:center;gap:12px;">
+      <a class="brand" href="/app/owner/dashboard.html"><span class="brand__mark">A</span><span>AutoCare</span></a>
+      <div style="flex:1;"></div>
+      <a class="btn btn--ghost btn--sm" href="/app/owner/dashboard.html">← Dashboard</a>
+    </div>
+  </header>
+
+  <main class="av">
+    <div class="av-head am-rise">
+      <span class="kicker">My Garage</span>
+      <h1>Add a <em>vehicle</em></h1>
+    </div>
+
+    <form id="av-form" novalidate>
+      <!-- Vehicle details -->
+      <div class="form-card am-rise" data-d="1">
+        <div class="form-card__title">Vehicle details</div>
+        <div class="col" style="gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field">
+              <label class="field__label" for="av-make">Make *</label>
+              <input id="av-make" class="input" type="text" placeholder="e.g. Toyota" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="av-model">Model *</label>
+              <input id="av-model" class="input" type="text" placeholder="e.g. Corolla" required>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field">
+              <label class="field__label" for="av-variant">Variant</label>
+              <input id="av-variant" class="input" type="text" placeholder="e.g. GLi 1.3">
+            </div>
+            <div class="field">
+              <label class="field__label" for="av-year">Year *</label>
+              <input id="av-year" class="input" type="number" placeholder="2020" min="1980" max="2026" required>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field">
+              <label class="field__label" for="av-color">Color</label>
+              <input id="av-color" class="input" type="text" placeholder="e.g. White">
+            </div>
+            <div class="field">
+              <label class="field__label" for="av-reg">Registration no.</label>
+              <input id="av-reg" class="input" type="text" placeholder="e.g. LHR-1234" style="text-transform:uppercase;">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field">
+              <label class="field__label" for="av-engine">Engine number</label>
+              <input id="av-engine" class="input" type="text" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label class="field__label" for="av-odo">Current odometer (km)</label>
+              <input id="av-odo" class="input" type="number" placeholder="e.g. 45000" min="0">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo (optional) -->
+      <div class="form-card am-rise" data-d="2">
+        <div class="form-card__title">Photo <span style="font-weight:400;color:var(--paper-400);font-size:var(--fs-sm);">(optional)</span></div>
+        <div class="upload-zone" id="zone-photo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <strong>Upload car photo</strong>
+          <span>JPG or PNG · max 10MB</span>
+        </div>
+      </div>
+
+      <div id="av-error" style="display:none;padding:12px 14px;background:var(--bad-50);border:1px solid var(--bad-100);border-radius:10px;color:var(--bad-700);font-size:var(--fs-sm);margin-bottom:16px;"></div>
+
+      <button class="btn btn--primary btn--lg btn--block am-rise" data-d="3" type="submit">
+        Register vehicle &amp; generate QR
+        <span data-icon="arrow-r" data-size="18"></span>
+      </button>
+    </form>
+
+    <!-- QR result (shown after insert) -->
+    <div class="qr-panel am-rise" id="qr-panel">
+      <span class="kicker" style="color:var(--ok-700);">Vehicle registered</span>
+      <h2>Your QR code is <em>ready</em>!</h2>
+      <p>Print or save this QR sticker and stick it inside your windscreen.<br>Any mechanic can scan it to log a verified service record.</p>
+      <div id="qr-canvas-wrap"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn--primary" id="btn-download">
+          <span data-icon="download" data-size="16"></span> Download QR (PNG)
+        </button>
+        <a class="btn btn--ghost" href="/app/owner/dashboard.html">Go to Garage →</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  if (!user) { window.location.href = '/app/login.html'; return; }
+
+  const { data: _ownerCheck } = await supabase.from('profiles').select('primary_role, is_admin').eq('id', user.id).maybeSingle();
+  if (_ownerCheck?.primary_role !== 'owner' && _ownerCheck?.primary_role !== 'seller' && !_ownerCheck?.is_admin) { window.location.href = '/app/signup.html'; return; }
+
+  let photoFile = null;
+
+  // Photo upload zone
+  const zone = document.getElementById('zone-photo');
+  const photoInput = document.createElement('input');
+  photoInput.type = 'file'; photoInput.accept = 'image/jpeg,image/png,image/webp'; photoInput.style.display = 'none';
+  document.body.appendChild(photoInput);
+  zone.addEventListener('click', () => photoInput.click());
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+    photoFile = file;
+    zone.className = 'upload-zone done';
+    zone.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ok-500)" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg><strong style="color:var(--ok-700);">${file.name}</strong><span>Tap to replace</span>`;
+    photoInput.value = '';
+  });
+
+  function showError(msg) {
+    const el = document.getElementById('av-error');
+    el.textContent = msg; el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('av-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const make   = document.getElementById('av-make').value.trim();
+    const model  = document.getElementById('av-model').value.trim();
+    const year   = parseInt(document.getElementById('av-year').value);
+
+    if (!make || !model || !year) { showError('Make, model and year are required.'); return; }
+
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Registering…';
+
+    const payload = {
+      owner_id:            user.id,
+      make, model,
+      variant:             document.getElementById('av-variant').value.trim() || null,
+      year,
+      color:               document.getElementById('av-color').value.trim() || null,
+      registration_number: document.getElementById('av-reg').value.trim().toUpperCase() || null,
+      engine_number:       document.getElementById('av-engine').value.trim() || null,
+      current_odometer:    parseInt(document.getElementById('av-odo').value) || null,
+    };
+
+    const { data: inserted, error } = await supabase.from('vehicles').insert(payload).select().maybeSingle();
+    if (error || !inserted) {
+      showError('Failed to register vehicle: ' + (error?.message || 'Unknown error'));
+      btn.disabled = false; btn.textContent = 'Register vehicle & generate QR';
+      return;
+    }
+
+    // Upload photo if provided
+    if (photoFile) {
+      const ext = photoFile.name.split('.').pop().toLowerCase();
+      const path = `${user.id}/${inserted.id}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('vehicle-photos').upload(path, photoFile, { upsert: true });
+      if (!upErr) {
+        await supabase.from('vehicles').update({ photo_url: path }).eq('id', inserted.id);
+      }
+    }
+
+    // Generate QR code
+    const passportUrl = `${window.location.origin}/app/service-passport.html?vehicle=${inserted.qr_code_uuid}`;
+    await supabase.from('vehicles').update({ qr_code_url: passportUrl }).eq('id', inserted.id);
+
+    // Render QR
+    document.getElementById('av-form').style.display = 'none';
+    const panel = document.getElementById('qr-panel');
+    panel.classList.add('show');
+    const wrap = document.getElementById('qr-canvas-wrap');
+    wrap.innerHTML = '';
+    new QRCode(wrap, { text: passportUrl, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H });
+
+    // Download handler
+    document.getElementById('btn-download').addEventListener('click', () => {
+      const canvas = wrap.querySelector('canvas');
+      if (!canvas) { alert('QR not ready yet.'); return; }
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `autocare-qr-${inserted.registration_number || inserted.id.slice(0,8)}.png`;
+      a.click();
+    });
+
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(panel);
+  });
+})();
+</script>
+</body>
+</html>

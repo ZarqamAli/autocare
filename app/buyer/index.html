@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Browse cars · AutoMart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .browse-layout {
+    display: grid; gap: 24px;
+    grid-template-columns: 1fr;
+    max-width: var(--container); margin: 0 auto; padding: 24px 24px 96px;
+  }
+  @media (min-width: 1080px) {
+    .browse-layout { grid-template-columns: 280px 1fr; gap: 32px; }
+  }
+  .grid-cards {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .toolbar__count { font-size: var(--fs-sm); color: var(--paper-500); }
+  .toolbar__count strong { color: var(--ink-900); font-weight: 700; }
+  .toolbar__sort {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .seg {
+    display: inline-flex; padding: 4px; background: var(--paper-100);
+    border-radius: 10px;
+  }
+  .seg button {
+    height: 30px; padding: 0 12px; border-radius: 7px; border: none;
+    background: transparent; font: inherit; font-size: var(--fs-sm); font-weight: 600;
+    color: var(--paper-500); cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--paper-0); color: var(--ink-900); box-shadow: var(--shadow-xs); }
+  .hero-strip {
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .hero-strip h1 {
+    font-size: clamp(28px, 3.4vw, 42px); letter-spacing: -0.025em;
+  }
+  .hero-strip h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .filter-toggle-mobile {
+    display: inline-flex; align-items: center; gap: 6px; height: 36px;
+    padding: 0 12px; border-radius: 10px; background: var(--paper-0); border: var(--border-hair);
+    font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
+  }
+  @media (min-width: 1080px) { .filter-toggle-mobile { display: none; } }
+  @media (max-width: 1079px) { .filters-rail { display: none; } .filters-rail[data-open] { display: flex; } }
+  .hscore { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-family:var(--font-mono); font-size:11px; font-weight:800; flex-shrink:0; }
+  .hscore--good { background:#f0fdf4; color:#15803d; border:1.5px solid #86efac; }
+  .hscore--blue { background:#eff6ff; color:#1d4ed8; border:1.5px solid #93c5fd; }
+  .hscore--ok   { background:#fefce8; color:#92400e; border:1.5px solid #fde68a; }
+  .hscore--bad  { background:#fef2f2; color:#dc2626; border:1.5px solid #fca5a5; }
+  .verified-tag { display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; color:#15803d; border:1px solid #86efac; border-radius:20px; padding:2px 8px; font-size:10px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<!-- Header -->
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/buyer/index.html">
+      <span class="brand__mark">A</span>
+      <span class="hide-mobile">AutoMart</span>
+    </a>
+    <button class="appbar__city hide-mobile" type="button">
+      <span data-icon="pin" data-size="14" style="color:var(--brand-600)"></span>
+      Lahore
+      <span data-icon="chev-d" data-size="14"></span>
+    </button>
+    <div class="app-search">
+      <span data-icon="search" data-size="16" style="color:var(--paper-500)"></span>
+      <input type="search" placeholder="Search cars — make, model, city…">
+      <kbd class="hide-mobile">⌘K</kbd>
+    </div>
+    <div class="appbar__spacer"></div>
+    <nav class="appbar__nav hide-mobile">
+      <a class="appbar__link appbar__link--active" href="/app/buyer/index.html">Browse</a>
+      <a class="appbar__link" href="/app/buyer/ai.html">AI Search</a>
+      <a class="appbar__link" href="/app/buyer/saved.html">Saved</a>
+      <a class="appbar__link" href="/app/nearby.html">Find Workshop</a>
+      <a class="appbar__link" href="/app/emergency.html">Emergency</a>
+    </nav>
+    <div class="appbar__right">
+      <a class="iconbtn" href="/app/chat/index.html" aria-label="Messages">
+        <span data-icon="chat" data-size="18"></span>
+        <span class="iconbtn__badge" style="display:none;"></span>
+      </a>
+      <a class="iconbtn hide-mobile" href="/app/buyer/saved.html" aria-label="Saved">
+        <span data-icon="heart" data-size="18"></span>
+      </a>
+      <a href="/app/buyer/account.html" class="avatar" aria-label="Account">A</a>
+    </div>
+  </div>
+</header>
+
+<main class="browse-layout">
+  <!-- Filters rail -->
+  <aside class="filters filters-rail am-rise" data-d="1">
+    <h3>Filters</h3>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Body type</span>
+      <div class="chips">
+        <button class="chip" aria-pressed="true">All</button>
+        <button class="chip">Sedan</button>
+        <button class="chip">Hatchback</button>
+        <button class="chip">SUV</button>
+        <button class="chip">Crossover</button>
+      </div>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">City</span>
+      <select class="select" style="height:40px;">
+        <option>Lahore (1,247)</option>
+        <option>Karachi (1,658)</option>
+        <option>Islamabad (612)</option>
+        <option>Rawalpindi (438)</option>
+        <option>All Pakistan</option>
+      </select>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Price · PKR</span>
+      <div class="range-track">
+        <div class="range-track__fill" style="left:18%; right:32%;"></div>
+        <div class="range-track__handle" style="left:18%;"></div>
+        <div class="range-track__handle" style="left:68%;"></div>
+      </div>
+      <div class="range-vals">
+        <span>15 lakh</span>
+        <span>85 lakh</span>
+      </div>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Year</span>
+      <div class="row gap-2">
+        <input class="input" placeholder="From" value="2018" style="height:40px;">
+        <input class="input" placeholder="To" value="2024" style="height:40px;">
+      </div>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Fuel</span>
+      <div class="chips">
+        <button class="chip" aria-pressed="true">Petrol</button>
+        <button class="chip">Hybrid</button>
+        <button class="chip">Diesel</button>
+        <button class="chip">EV</button>
+      </div>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Transmission</span>
+      <div class="chips">
+        <button class="chip">Automatic</button>
+        <button class="chip">Manual</button>
+        <button class="chip">CVT</button>
+      </div>
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Make</span>
+      <input id="filter-make" class="input" type="text" placeholder="e.g. Toyota" style="height:40px;">
+    </div>
+
+    <div class="filter-block">
+      <span class="filter-block__title">Trust &amp; Health</span>
+      <label class="row gap-2" style="font-size:var(--fs-sm); cursor:pointer; margin-bottom:6px;">
+        <input type="checkbox" id="filter-health80" style="accent-color:var(--brand-600);"> Health score 80+
+      </label>
+      <label class="row gap-2" style="font-size:var(--fs-sm); cursor:pointer;">
+        <input type="checkbox" id="filter-verified-history" style="accent-color:var(--brand-600);"> Verified service history
+      </label>
+    </div>
+
+    <button class="btn btn--ghost btn--sm" type="button" style="align-self:flex-start;">
+      <span data-icon="close" data-size="14"></span> Clear filters
+    </button>
+  </aside>
+
+  <!-- Results -->
+  <section>
+    <div class="hero-strip am-rise" data-d="1">
+      <h1 id="browse-title">Browse <em>Cars</em></h1>
+    </div>
+
+    <div class="ai-banner am-rise" data-d="2">
+      <div class="ai-banner__icon"><span data-icon="sparkle" data-size="18"></span></div>
+      <div class="ai-banner__text">
+        <strong>AI Search:</strong> Get personalized car recommendations based on your needs and budget.
+      </div>
+      <a href="/app/buyer/ai.html" class="btn btn--quiet btn--sm hide-mobile">
+        Try AI Search <span data-icon="arrow-r" data-size="14"></span>
+      </a>
+    </div>
+
+    <div class="toolbar am-rise" data-d="3">
+      <button class="filter-toggle-mobile" id="mobile-filters">
+        <span data-icon="filter" data-size="14"></span> Filters · 5
+      </button>
+      <span class="toolbar__count"><strong>—</strong> listings</span>
+      <div class="toolbar__sort">
+        <span class="hide-mobile" style="font-size:var(--fs-sm); color:var(--paper-500);">Sort by</span>
+        <select class="select" style="height:36px; width:auto; padding-right:30px;">
+          <option>Newest first</option>
+          <option>Price: low to high</option>
+          <option>Price: high to low</option>
+          <option>Health score: best first</option>
+          <option>Mileage: low to high</option>
+        </select>
+        <div class="seg" role="tablist">
+          <button aria-pressed="true" aria-label="Grid"><span data-icon="grid" data-size="14"></span></button>
+          <button aria-pressed="false" aria-label="List"><span data-icon="list" data-size="14"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-cards" id="grid"></div>
+
+    <div class="text-c mt-8">
+      <button class="btn btn--ghost btn--lg" style="display:none;">Load more</button>
+    </div>
+  </section>
+</main>
+
+<!-- Mobile bottom tabs -->
+<nav class="tabbar">
+  <a href="/app/buyer/index.html" aria-current="page">
+    <span data-icon="home" data-size="20"></span>Browse
+  </a>
+  <a href="/app/buyer/ai.html"><span data-icon="sparkle" data-size="20"></span>AI</a>
+  <a href="/app/chat/index.html" style="position:relative;">
+    <span data-icon="chat" data-size="20"></span>Chats
+    <span class="tabbar__badge" style="display:none;"></span>
+  </a>
+  <a href="/app/buyer/saved.html"><span data-icon="heart" data-size="20"></span>Saved</a>
+  <a href="/app/nearby.html"><span data-icon="pin" data-size="20"></span>Workshop</a>
+  <a href="/app/buyer/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script>
+  // Mobile filters toggle (visual)
+  const mb = document.getElementById('mobile-filters');
+  const fr = document.querySelector('.filters-rail');
+  mb && mb.addEventListener('click', () => {
+    if (fr.hasAttribute('data-open')) fr.removeAttribute('data-open');
+    else fr.setAttribute('data-open', '');
+  });
+</script>
+<script type="module">
+import { supabase, getCurrentUser, PAKISTAN_CITIES, initUnreadBadge, formatPKR } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  const { data: _rc } = await supabase.from('profiles').select('primary_role,is_admin').eq('id', session.user.id).maybeSingle();
+  if (_rc && _rc.primary_role !== 'buyer' && !_rc.is_admin) {
+    const dest = _rc.primary_role === 'mechanic' ? '/app/mechanic/dashboard.html' : '/app/owner/dashboard.html';
+    window.location.replace(dest); return;
+  }
+  document.body.style.visibility = '';
+
+function formatL(minor) {
+  const pkr=minor/100;
+  if(pkr>=10000000) return (pkr/10000000).toFixed(2)+' Cr';
+  return (pkr/100000).toFixed(1)+' L';
+}
+function timeAgo(ts) {
+  const s=Math.floor((Date.now()-new Date(ts))/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<604800) return Math.floor(s/86400)+'d ago';
+  return Math.floor(s/604800)+'w ago';
+}
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); return; }
+
+initUnreadBadge('.iconbtn__badge, .tabbar__badge');
+
+// Populate city select
+const citySelect = document.querySelector('.filters-rail .filter-block select');
+if (citySelect) {
+  citySelect.innerHTML = '<option value="">All Pakistan</option>' + PAKISTAN_CITIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+// State
+let favSet = new Set();
+let verifiedSet = new Set(); // vehicle_ids with 3+ service logs
+let allListings = [];
+let page = 0;
+const PAGE_SIZE = 20;
+const filters = { body_type: '', city: '', fuel: '', transmission: '', minPrice: 0, maxPrice: Infinity, yearFrom: 0, yearTo: 9999, sort: 'newest', make: '', minHealth: 0, verifiedOnly: false };
+
+// Load existing favorites
+const { data: favData } = await supabase.from('favorites').select('listing_id').eq('user_id', user.id);
+favData?.forEach(f => favSet.add(f.listing_id));
+
+const grid = document.getElementById('grid');
+const countEl = document.querySelector('.toolbar__count');
+const loadMoreBtn = document.querySelector('.text-c button');
+
+async function fetchListings(reset = true) {
+  if (reset) { page = 0; allListings = []; }
+  let q = supabase
+    .from('listings')
+    .select('id, make, model, variant, year, mileage, city, price_minor, primary_photo_url, status, body_type, transmission, fuel_type, created_at, seller_id, vehicle_id, health_score_snapshot, profiles!listings_seller_id_fkey(display_name)', { count: 'exact' })
+    .in('status', ['active', 'sold'])
+    .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+  if (filters.city) q = q.eq('city', filters.city);
+  if (filters.body_type) q = q.eq('body_type', filters.body_type);
+  if (filters.fuel) q = q.eq('fuel_type', filters.fuel);
+  if (filters.transmission) q = q.eq('transmission', filters.transmission);
+  if (filters.yearFrom) q = q.gte('year', filters.yearFrom);
+  if (filters.yearTo < 9999) q = q.lte('year', filters.yearTo);
+  if (filters.minPrice > 0) q = q.gte('price_minor', filters.minPrice * 100);
+  if (filters.maxPrice < Infinity) q = q.lte('price_minor', filters.maxPrice * 100);
+  if (filters.make) q = q.ilike('make', `%${filters.make}%`);
+  if (filters.minHealth > 0) q = q.gte('health_score_snapshot', filters.minHealth);
+
+  if (filters.sort === 'price_asc') q = q.order('price_minor', { ascending: true });
+  else if (filters.sort === 'price_desc') q = q.order('price_minor', { ascending: false });
+  else if (filters.sort === 'mileage_asc') q = q.order('mileage', { ascending: true });
+  else if (filters.sort === 'health_desc') q = q.order('health_score_snapshot', { ascending: false, nullsFirst: false });
+  else q = q.order('created_at', { ascending: false });
+
+  const { data, count } = await q;
+
+  // Batch fetch service log counts for vehicle health badges
+  const vids = (data || []).map(l => l.vehicle_id).filter(Boolean);
+  if (vids.length) {
+    const { data: logRows } = await supabase.from('service_logs').select('vehicle_id').in('vehicle_id', vids);
+    const countMap = {};
+    (logRows || []).forEach(r => { countMap[r.vehicle_id] = (countMap[r.vehicle_id] || 0) + 1; });
+    if (reset) verifiedSet = new Set();
+    Object.entries(countMap).forEach(([vid, cnt]) => { if (cnt >= 3) verifiedSet.add(vid); });
+  }
+
+  if (reset) allListings = data || [];
+  else allListings = [...allListings, ...(data || [])];
+  return { listings: data || [], total: count || 0 };
+}
+
+function hscoreClass(s) { return s >= 86 ? 'good' : s >= 66 ? 'blue' : s >= 41 ? 'ok' : 'bad'; }
+
+function renderCard(l) {
+  const isFav = favSet.has(l.id);
+  const priceL = formatL(l.price_minor);
+  const isDealer = false;
+  const sellerName = l.profiles?.display_name || 'Seller';
+  const initials = sellerName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const hasHistory = l.vehicle_id && verifiedSet.has(l.vehicle_id);
+  const score = l.health_score_snapshot;
+  const scoreBadge = score != null
+    ? `<div class="hscore hscore--${hscoreClass(score)}" title="Health score">${score}</div>`
+    : '';
+  const verifiedBadge = hasHistory
+    ? `<span class="verified-tag">✓ Verified History</span>`
+    : '';
+
+  const imgSrc = l.primary_photo_url && l.primary_photo_url.startsWith('http') ? l.primary_photo_url : l.primary_photo_url ? `https://zthsfeivxjwenrjxykwj.supabase.co/storage/v1/object/public/listings/${l.primary_photo_url}` : 'https://placehold.co/400x300?text=No+Photo';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = `<div class="lcard am-rise">
+    <div class="lcard__media">
+      <div class="imgslot" data-aspect="4/3">
+        <img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+        <span class="imgslot__label">${l.make} ${l.model} · ${l.year}</span>
+      </div>
+      <button class="lcard__heart" aria-label="Save" aria-pressed="${isFav}" data-lid="${l.id}">
+        <span data-icon="${isFav?'heart-fill':'heart'}" data-size="18"></span>
+      </button>
+      ${scoreBadge ? `<div style="position:absolute;top:8px;left:8px;">${scoreBadge}</div>` : ''}
+      ${l.status === 'sold' ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;"><span style="background:#dc2626;color:#fff;font-weight:800;font-size:13px;letter-spacing:0.12em;padding:6px 16px;border-radius:8px;transform:rotate(-8deg);">SOLD</span></div>` : ''}
+    </div>
+    <div class="lcard__body">
+      <div class="lcard__title-row">
+        <div class="lcard__title">${l.make} ${l.model}${l.variant?' '+l.variant:''}</div>
+        <div class="lcard__price">${priceL}</div>
+      </div>
+      <div class="lcard__meta">
+        <span>${l.year}</span><i></i>
+        <span>${(l.mileage||0).toLocaleString()} km</span><i></i>
+        <span>${l.transmission||''}</span><i></i>
+        <span>${l.city||''}</span>
+      </div>
+      ${verifiedBadge ? `<div style="margin-top:6px;">${verifiedBadge}</div>` : ''}
+      <div class="lcard__foot">
+        <div class="lcard__seller">
+          <span class="lcard__avatar">${initials}</span>
+          <span>${sellerName}</span>
+        </div>
+        <span>${timeAgo(l.created_at)}</span>
+      </div>
+    </div>
+  </div>`;
+  const card = tmp.firstElementChild;
+  card.style.cursor = l.status === 'sold' ? 'default' : 'pointer';
+  if (l.status !== 'sold') card.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    window.location.assign('/app/listing/detail.html?id=' + l.id);
+  });
+  return card;
+}
+
+function updateBrowseTitle() {
+  const t = document.getElementById('browse-title');
+  if (!t) return;
+  const make = filters.make ? `<em>${filters.make}</em>` : 'All';
+  const city = filters.city ? ` in <em>${filters.city}</em>` : '';
+  t.innerHTML = `${make} Cars${city}`;
+}
+
+async function render(reset = true) {
+  if (reset) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--paper-500);">Loading…</div>'; updateBrowseTitle(); }
+  const { listings, total } = await fetchListings(reset);
+  if (reset) grid.innerHTML = '';
+
+  let visible = filters.verifiedOnly ? listings.filter(l => l.vehicle_id && verifiedSet.has(l.vehicle_id)) : listings;
+
+  if (!visible.length && reset) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--paper-500);"><strong>No listings found.</strong><p style="margin-top:8px;font-size:var(--fs-sm);">Try adjusting your filters.</p></div>';
+    countEl.innerHTML = '<strong>0</strong> matches';
+    loadMoreBtn.style.display = 'none';
+    return;
+  }
+  if (reset) grid.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  visible.map(renderCard).forEach(c => frag.appendChild(c));
+  grid.appendChild(frag);
+  countEl.innerHTML = `<strong>${(filters.verifiedOnly ? visible.length : total).toLocaleString()}</strong> matches`;
+  loadMoreBtn.style.display = (!filters.verifiedOnly && total > allListings.length) ? '' : 'none';
+  loadMoreBtn.textContent = `Load more · ${total - allListings.length} remaining`;
+  AMIcon.mount(grid);
+  wireHearts();
+}
+
+function wireHearts() {
+  grid.querySelectorAll('.lcard__heart').forEach(btn => {
+    btn.replaceWith(btn.cloneNode(true)); // remove old listeners
+  });
+  grid.querySelectorAll('.lcard__heart').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.preventDefault(); e.stopPropagation();
+      const lid = btn.dataset.lid;
+      const isFav = favSet.has(lid);
+      if (isFav) {
+        await supabase.from('favorites').delete().eq('user_id', user.id).eq('listing_id', lid);
+        favSet.delete(lid);
+      } else {
+        await supabase.from('favorites').insert({ user_id: user.id, listing_id: lid });
+        favSet.add(lid);
+      }
+      btn.setAttribute('aria-pressed', !isFav);
+      const span = btn.querySelector('span');
+      span.setAttribute('data-icon', isFav ? 'heart' : 'heart-fill');
+      span.dataset.iconMounted = ''; span.innerHTML = '';
+      if (typeof AMIcon !== 'undefined') AMIcon.mount(btn);
+    });
+  });
+}
+
+// Filter chips (body type)
+document.querySelectorAll('.filter-block:first-of-type .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-block:first-of-type .chip').forEach(c => c.removeAttribute('aria-pressed'));
+    chip.setAttribute('aria-pressed','true');
+    filters.body_type = chip.textContent === 'All' ? '' : chip.textContent;
+    render();
+  });
+});
+
+// City select
+citySelect?.addEventListener('change', () => { filters.city = citySelect.value; render(); });
+
+// Sort select
+document.querySelector('.toolbar__sort select')?.addEventListener('change', e => {
+  const v = e.target.value;
+  filters.sort = v.includes('low to high') ? 'price_asc' : v.includes('high to low') ? 'price_desc' : v.includes('Mileage') ? 'mileage_asc' : v.includes('Health') ? 'health_desc' : 'newest';
+  render();
+});
+
+// Make filter
+document.getElementById('filter-make')?.addEventListener('input', (() => {
+  let t;
+  return e => { clearTimeout(t); t = setTimeout(() => { filters.make = e.target.value.trim(); render(); }, 400); };
+})());
+
+// Health 80+ toggle
+document.getElementById('filter-health80')?.addEventListener('change', e => {
+  filters.minHealth = e.target.checked ? 80 : 0;
+  render();
+});
+
+// Verified history toggle
+document.getElementById('filter-verified-history')?.addEventListener('change', e => {
+  filters.verifiedOnly = e.target.checked;
+  render();
+});
+
+// Fuel chips
+document.querySelectorAll('.filter-block:nth-of-type(5) .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const active = chip.getAttribute('aria-pressed') === 'true';
+    chip.setAttribute('aria-pressed', active ? 'false' : 'true');
+    const map = { Petrol:'Petrol', Hybrid:'Hybrid', Diesel:'Diesel', EV:'Electric' };
+    filters.fuel = active ? '' : (map[chip.textContent] || chip.textContent);
+    render();
+  });
+});
+
+// Transmission chips
+document.querySelectorAll('.filter-block:nth-of-type(6) .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const active = chip.getAttribute('aria-pressed') === 'true';
+    chip.setAttribute('aria-pressed', active ? 'false' : 'true');
+    filters.transmission = active ? '' : chip.textContent;
+    render();
+  });
+});
+
+// Clear filters
+document.querySelector('.filters-rail .btn--ghost')?.addEventListener('click', () => {
+  Object.assign(filters, { body_type:'', city:'', fuel:'', transmission:'', minPrice:0, maxPrice:Infinity, yearFrom:0, yearTo:9999, sort:'newest', make:'', minHealth:0, verifiedOnly:false });
+  if (citySelect) citySelect.value = '';
+  const makeInput = document.getElementById('filter-make');
+  if (makeInput) makeInput.value = '';
+  const h80 = document.getElementById('filter-health80');
+  if (h80) h80.checked = false;
+  const vh = document.getElementById('filter-verified-history');
+  if (vh) vh.checked = false;
+  document.querySelectorAll('.chip[aria-pressed="true"]').forEach(c => c.removeAttribute('aria-pressed'));
+  render();
+});
+
+// Search bar — 300ms debounce, client-side filter on allListings
+const searchInput = document.querySelector('.app-search input[type="search"]');
+if (searchInput) {
+  searchInput.value = '';
+  let debTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debTimer);
+    debTimer = setTimeout(() => {
+      const q = searchInput.value.trim().toLowerCase();
+      const filtered = q
+        ? allListings.filter(l => [l.make, l.model, l.variant, l.city].some(v => v?.toLowerCase().includes(q)))
+        : allListings;
+      grid.innerHTML = '';
+      if (filtered.length) {
+        const frag = document.createDocumentFragment();
+        filtered.map(renderCard).forEach(c => frag.appendChild(c));
+        grid.appendChild(frag);
+      } else {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--paper-500);"><strong>No results for "${q}".</strong></div>`;
+      }
+      countEl.innerHTML = `<strong>${filtered.length.toLocaleString()}</strong> matches`;
+      loadMoreBtn.style.display = 'none';
+      AMIcon.mount(grid);
+      wireHearts();
+    }, 300);
+  });
+}
+
+// Load more
+loadMoreBtn?.addEventListener('click', () => { page++; render(false); });
+
+// Realtime new listing
+supabase.channel('browse-listings')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'listings' }, () => render())
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'listings' }, () => render())
+  .subscribe();
+
+// Re-fetch when user returns to this tab (covers sold listings disappearing without needing REPLICA IDENTITY FULL)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+await render();
+})();
+</script>
+</body>
+</html>

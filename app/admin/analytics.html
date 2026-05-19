@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Analytics · AutoMart Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  body { background: #0b1020; color: #e2e8f0; }
+  body::before { content: none; }
+
+  .admin-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  @media (min-width: 960px) { .admin-shell { grid-template-columns: 240px 1fr; } }
+
+  .admin-sidebar {
+    background: #060818; border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 22px 14px; display: none;
+  }
+  @media (min-width: 960px) { .admin-sidebar { display: block; position: sticky; top: 0; height: 100vh; } }
+  .admin-sidebar__brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 24px; font-weight: 700; color: #fff; }
+  .admin-sidebar__brand .brand__mark { background: #fff; color: #0b1020; }
+  .admin-sidebar a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: #94a3b8; font-weight: 500; font-size: var(--fs-sm); }
+  .admin-sidebar a:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  .admin-sidebar a[aria-current="page"] { background: rgba(99,102,241,0.15); color: #c7d2fe; font-weight: 600; }
+  .admin-sidebar__group { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; padding: 16px 8px 6px; font-weight: 700; }
+
+  .admin-main { padding: 24px 28px 96px; }
+
+  .admin-head { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .admin-head h1 { font-size: clamp(24px,3vw,36px); letter-spacing: -0.02em; color: #fff; }
+  .pill-dark { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(99,102,241,0.18); color: #c7d2fe; border-radius: var(--r-pill); font-size: 11px; font-weight: 600; }
+
+  .stats-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 28px; }
+  .stat-dark { padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }
+  .stat-dark__lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 8px; }
+  .stat-dark__val { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: #fff; line-height: 1; }
+  .stat-dark__sub { font-size: 11px; color: #475569; margin-top: 6px; }
+
+  .grid-2 { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { .grid-2 { grid-template-columns: 1.6fr 1fr; } }
+
+  .panel-dark { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 22px; }
+  .panel-dark h3 { color: #cbd5e1; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px; font-weight: 700; }
+
+  .chart-wrap { position: relative; height: 240px; }
+
+  .lb-table { width: 100%; border-collapse: collapse; }
+  .lb-table th { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; }
+  .lb-table td { padding: 12px 0; font-size: var(--fs-sm); border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .lb-table tbody tr:last-child td { border-bottom: none; }
+  .lb-rank { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #475569; width: 28px; }
+  .lb-rank--1 { color: #fbbf24; }
+  .lb-rank--2 { color: #94a3b8; }
+  .lb-rank--3 { color: #b45309; }
+  .lb-name { color: #fff; font-weight: 600; }
+  .lb-city { color: #64748b; font-size: 12px; }
+  .lb-count { font-family: var(--font-mono); font-weight: 700; color: #818cf8; text-align: right; }
+
+  .mobile-head { display: flex; align-items: center; gap: 8px; padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); background: #060818; color: #fff; }
+  @media (min-width: 960px) { .mobile-head { display: none; } }
+</style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__brand"><span class="brand__mark">A</span> AutoMart · Admin</div>
+    <a href="verifications.html"><span data-icon="verified" data-size="16"></span>Verifications</a>
+    <a href="#"><span data-icon="alert" data-size="16"></span>Reports</a>
+    <a href="analytics.html" aria-current="page"><span data-icon="chart" data-size="16"></span>Analytics</a>
+    <div class="admin-sidebar__group">Catalog</div>
+    <a href="#"><span data-icon="tag" data-size="16"></span>Listings</a>
+    <a href="#"><span data-icon="user" data-size="16"></span>Users</a>
+    <a href="#"><span data-icon="doc" data-size="16"></span>Audit log</a>
+    <div class="admin-sidebar__group">Account</div>
+    <a href="#"><span data-icon="cog" data-size="16"></span>Settings</a>
+    <a href="/app/login.html"><span data-icon="arrow-r" data-size="16"></span>Sign out</a>
+  </aside>
+
+  <main class="admin-main">
+    <div class="mobile-head"><a href="verifications.html" style="color:#94a3b8;margin-right:10px;">← Back</a><strong>Analytics</strong></div>
+
+    <div class="admin-head">
+      <span class="pill-dark">📊 Live data</span>
+      <h1>Analytics</h1>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-dark"><div class="stat-dark__lbl">Registered vehicles</div><div class="stat-dark__val" id="s-vehicles">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Approved workshops</div><div class="stat-dark__val" id="s-workshops">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Service logs</div><div class="stat-dark__val" id="s-logs">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Active listings</div><div class="stat-dark__val" id="s-listings">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Deals closed</div><div class="stat-dark__val" id="s-sold">—</div></div>
+      <div class="stat-dark"><div class="stat-dark__lbl">Stolen reports</div><div class="stat-dark__val" id="s-stolen" style="color:#fca5a5;">—</div><div class="stat-dark__sub">active</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel-dark">
+        <h3>Service logs · last 6 months</h3>
+        <div class="chart-wrap">
+          <canvas id="chart-logs"></canvas>
+        </div>
+      </div>
+      <div class="panel-dark">
+        <h3>Workshop leaderboard</h3>
+        <table class="lb-table">
+          <thead><tr><th>#</th><th>Workshop</th><th style="text-align:right;">Logs</th></tr></thead>
+          <tbody id="lb-body"><tr><td colspan="3" style="color:#64748b;text-align:center;padding:20px;">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  if (!user) { window.location.replace('/app/login.html'); return; }
+  const { data: _ac } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
+  if (!_ac?.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
+
+  // ── Stat cards ─────────────────────────────────────────────
+  const [
+    { count: cVehicles },
+    { count: cWorkshops },
+    { count: cLogs },
+    { count: cListings },
+    { count: cSold },
+    { count: cStolen },
+  ] = await Promise.all([
+    supabase.from('vehicles').select('id', { count: 'exact', head: true }),
+    supabase.from('mechanic_profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    supabase.from('service_logs').select('id', { count: 'exact', head: true }),
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'sold'),
+    supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_stolen', true),
+  ]);
+
+  document.getElementById('s-vehicles').textContent  = (cVehicles  ?? 0).toLocaleString();
+  document.getElementById('s-workshops').textContent = (cWorkshops ?? 0).toLocaleString();
+  document.getElementById('s-logs').textContent      = (cLogs      ?? 0).toLocaleString();
+  document.getElementById('s-listings').textContent  = (cListings  ?? 0).toLocaleString();
+  document.getElementById('s-sold').textContent      = (cSold      ?? 0).toLocaleString();
+  document.getElementById('s-stolen').textContent    = (cStolen    ?? 0).toLocaleString();
+
+  // ── Monthly chart ──────────────────────────────────────────
+  // Build last 6 month labels
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ label: d.toLocaleDateString('en-PK', { month: 'short', year: '2-digit' }), year: d.getFullYear(), month: d.getMonth() });
+  }
+  const since = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString();
+
+  const { data: recentLogs } = await supabase
+    .from('service_logs')
+    .select('logged_at')
+    .gte('logged_at', since);
+
+  const counts = new Array(6).fill(0);
+  (recentLogs || []).forEach(log => {
+    const d = new Date(log.logged_at);
+    const idx = months.findIndex(m => m.year === d.getFullYear() && m.month === d.getMonth());
+    if (idx !== -1) counts[idx]++;
+  });
+
+  new Chart(document.getElementById('chart-logs'), {
+    type: 'bar',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [{
+        label: 'Service logs',
+        data: counts,
+        backgroundColor: 'rgba(99,102,241,0.7)',
+        borderColor: 'rgba(99,102,241,1)',
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', stepSize: 1 }, beginAtZero: true },
+      }
+    }
+  });
+
+  // ── Workshop leaderboard ───────────────────────────────────
+  const { data: allLogs } = await supabase
+    .from('service_logs')
+    .select('mechanic_id')
+    .not('mechanic_id', 'is', null);
+
+  // Aggregate counts client-side
+  const mechCount = {};
+  (allLogs || []).forEach(l => { mechCount[l.mechanic_id] = (mechCount[l.mechanic_id] || 0) + 1; });
+  const top5 = Object.entries(mechCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const lbBody = document.getElementById('lb-body');
+  if (!top5.length) {
+    lbBody.innerHTML = '<tr><td colspan="3" style="color:#64748b;text-align:center;padding:20px;">No service logs yet.</td></tr>';
+  } else {
+    const mechIds = top5.map(([id]) => id);
+    const { data: mechs } = await supabase.from('mechanic_profiles').select('id, workshop_name, city').in('id', mechIds);
+    const mechMap = Object.fromEntries((mechs || []).map(m => [m.id, m]));
+
+    const rankColors = ['lb-rank--1', 'lb-rank--2', 'lb-rank--3', '', ''];
+    lbBody.innerHTML = top5.map(([id, cnt], i) => {
+      const m = mechMap[id] || {};
+      return `<tr>
+        <td class="lb-rank ${rankColors[i]}">#${i + 1}</td>
+        <td><div class="lb-name">${m.workshop_name || 'Unknown'}</div><div class="lb-city">${m.city || '—'}</div></td>
+        <td class="lb-count">${cnt}</td>
+      </tr>`;
+    }).join('');
+  }
+})();
+</script>
+</body>
+</html>

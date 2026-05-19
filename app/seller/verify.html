@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Get verified · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .vfy { max-width: 880px; margin: 0 auto; padding: 32px 24px 96px; }
+  .vfy-hero { padding: 36px 32px; border-radius: var(--r-2xl); background: linear-gradient(160deg, #f0fdf4, #fff 60%); border: 1px solid #bbf7d0; position: relative; overflow: hidden; }
+  .vfy-hero::after { content:''; position:absolute; top:-40px; right:-40px; width: 200px; height:200px; border-radius:50%; background: radial-gradient(circle, rgba(34,197,94,0.18), transparent 70%); }
+  .vfy-hero h1 { font-size: clamp(28px, 3.6vw, 44px); letter-spacing: -0.025em; line-height: 1.1; margin-top: 12px; }
+  .vfy-hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #15803d; }
+  .vfy-hero p { color: var(--paper-700); margin-top: 12px; max-width: 540px; line-height:1.6; }
+  .perks { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 22px; position: relative; z-index: 1; }
+  .perk { display: flex; gap: 10px; align-items: start; padding: 14px; background: rgba(255,255,255,0.7); border: var(--border-hair); border-radius: 12px; backdrop-filter: blur(6px); }
+  .perk__icon { width:32px; height:32px; border-radius:8px; background: var(--ok-500); color:#fff; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .perk strong { display:block; font-size: var(--fs-sm); }
+  .perk span { font-size: 11px; color: var(--paper-500); }
+
+  .step-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    margin-top: 18px; overflow: hidden;
+  }
+  .step-head { padding: 18px 22px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
+  .step-head__num { width: 36px; height: 36px; border-radius: 50%; background: var(--paper-100); color: var(--paper-700); font-weight: 700; display: inline-flex; align-items:center; justify-content:center; flex-shrink:0; font-family: var(--font-mono); }
+  .step-card--done .step-head__num { background: var(--ok-500); color:#fff; }
+  .step-card--active .step-head__num { background: var(--ink-900); color: #fff; }
+  .step-head__main { flex: 1; }
+  .step-head__title { font-weight: 700; color: var(--ink-900); }
+  .step-head__sub { font-size: var(--fs-xs); color: var(--paper-500); margin-top: 2px; }
+  .step-body { padding: 0 22px 22px; border-top: 1px solid var(--paper-100); }
+
+  .upload-zone {
+    margin-top: 14px; border: 1.5px dashed var(--paper-200); border-radius: 14px;
+    padding: 32px; text-align: center; background: var(--paper-50); cursor:pointer;
+    transition: all var(--dur);
+  }
+  .upload-zone:hover { border-color: var(--brand-500); background: var(--brand-50); }
+  .upload-zone svg { color: var(--paper-400); margin-bottom: 10px; }
+  .upload-zone strong { display: block; color: var(--ink-900); }
+  .upload-zone span { font-size: var(--fs-xs); color: var(--paper-500); }
+
+  .uploaded {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: var(--ok-50); border: 1px solid var(--ok-100);
+    border-radius: 12px; margin-top: 12px;
+  }
+</style></head>
+<body>
+<div class="app-shell with-tabbar">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--ghost btn--sm" href="/app/owner/dashboard.html">← Back to dashboard</a>
+  </div>
+</header>
+
+<main class="vfy">
+  <section class="vfy-hero am-rise">
+    <span class="kicker" style="color:#15803d;"><span data-icon="verified" data-size="14"></span>Verified seller program</span>
+    <h1>Build trust. Sell <em>2.4×</em> faster.</h1>
+    <p>Verified sellers get a green badge, priority placement in search, and access to AutoMart Escrow for safer cash deals.</p>
+
+    <div class="perks">
+      <div class="perk"><div class="perk__icon"><span data-icon="verified" data-size="16"></span></div><div><strong>Green badge</strong><span>Trust signal on every listing</span></div></div>
+      <div class="perk"><div class="perk__icon" style="background:#2563eb;"><span data-icon="rupee" data-size="16"></span></div><div><strong>Escrow access</strong><span>Held funds until handover</span></div></div>
+      <div class="perk"><div class="perk__icon" style="background:#7c3aed;"><span data-icon="sparkle" data-size="16"></span></div><div><strong>Priority listing</strong><span>Top of search results</span></div></div>
+    </div>
+  </section>
+
+  <div class="step-card step-card--done am-rise" data-d="2">
+    <div class="step-head">
+      <div class="step-head__num">✓</div>
+      <div class="step-head__main">
+        <div class="step-head__title">Phone verification</div>
+        <div class="step-head__sub">+92 3•• ••• ••87 — verified Mar 14, 2025</div>
+      </div>
+      <span class="pill pill--ok"><span data-icon="verified" data-size="11"></span>Done</span>
+    </div>
+  </div>
+
+  <div class="step-card step-card--active am-rise" data-d="3">
+    <div class="step-head">
+      <div class="step-head__num">2</div>
+      <div class="step-head__main">
+        <div class="step-head__title">CNIC verification</div>
+        <div class="step-head__sub">Front, back, and a selfie. We don't share your CNIC publicly.</div>
+      </div>
+      <span class="pill"><span class="dot"></span>In progress</span>
+    </div>
+    <div class="step-body">
+      <div class="grid-2" style="gap: 12px; margin-top: 16px;">
+        <div class="upload-zone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+          <strong>CNIC front</strong>
+          <span>JPG or PNG · max 5MB</span>
+        </div>
+        <div class="upload-zone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+          <strong>CNIC back</strong>
+          <span>JPG or PNG · max 5MB</span>
+        </div>
+      </div>
+      <div class="upload-zone" style="margin-top:14px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="9" r="3.5"/><path d="M5 19c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5"/></svg>
+        <strong>Take a selfie holding your CNIC</strong>
+        <span>Match check is automated and runs in ~30 seconds</span>
+      </div>
+      <div class="row gap-2" style="margin-top: 18px; justify-content: flex-end;">
+        <button class="btn btn--primary">Submit for review</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-c muted" style="font-size: var(--fs-xs); margin-top: 28px;">All documents are encrypted. We never share CNIC details with buyers — only your verified status. <a href="#" style="color:var(--brand-700);">Privacy policy →</a></p>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="/app/seller/new.html"><span data-icon="plus" data-size="20"></span>New listing</a>
+  <a href="/app/chat/index.html"><span data-icon="chat" data-size="20"></span>Chats</a>
+  <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+const user = await getCurrentUser();
+const profile = await getUserProfile();
+if (!user || !profile) { window.location.replace('/app/login.html'); return; }
+
+const uploads = { cnic_front: null, cnic_back: null, selfie: null };
+
+const { data: sp } = await supabase.from('seller_profiles').select('*').eq('user_id', user.id).maybeSingle();
+
+const activeCard = document.querySelector('.step-card--active');
+const stepBody = activeCard?.querySelector('.step-body');
+const grid2 = stepBody?.querySelector('.grid-2');
+const submitBtn = stepBody?.querySelector('.btn--primary');
+
+function showError(msg) {
+  let el = document.getElementById('vfy-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'vfy-error';
+    el.style.cssText = 'padding:12px 14px;background:var(--bad-50);border:1px solid var(--bad-100);border-radius:10px;color:var(--bad-700);font-size:var(--fs-sm);margin-top:12px;';
+    submitBtn?.parentElement?.before(el);
+  }
+  el.textContent = msg;
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function clearError() {
+  document.getElementById('vfy-error')?.remove();
+}
+
+// Pre-populate upload state from existing seller_profile
+if (sp?.id_document_url) { uploads.cnic_front = sp.id_document_url; markUploaded(0, 'CNIC front'); }
+if (sp?.cnic_back_url) { uploads.cnic_back = sp.cnic_back_url; markUploaded(1, 'CNIC back'); }
+if (sp?.selfie_url) { uploads.selfie = sp.selfie_url; markUploadedSelfie(); }
+
+function showRequestReceived() {
+  activeCard.querySelector('.step-head__sub').textContent = 'Under review — we\'ll notify you within 8–10 hours.';
+  const pill = activeCard.querySelector('.pill');
+  pill.innerHTML = '<span class="dot"></span>Under review';
+  stepBody.innerHTML = `
+    <div style="padding:28px 0 8px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--ok-100);display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ok-600)" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:var(--fs-lg);color:var(--ink-900);">Request received!</div>
+        <div style="color:var(--paper-600);font-size:var(--fs-sm);margin-top:6px;max-width:340px;line-height:1.6;">Our team will review your CNIC and selfie. You'll be notified by email or SMS within <strong>8–10 hours</strong>. No action needed from your side.</div>
+      </div>
+      <a class="btn btn--ghost btn--sm" href="/app/seller/index.html" style="margin-top:6px;">← Back to dashboard</a>
+    </div>`;
+}
+
+function showApproved() {
+  activeCard.querySelector('.step-head__sub').textContent = 'Identity verified — you\'re all set!';
+  const pill = activeCard.querySelector('.pill');
+  pill.className = 'pill pill--ok';
+  pill.innerHTML = '<span data-icon="verified" data-size="11"></span>Verified';
+  stepBody.innerHTML = `
+    <div style="padding:28px 0 8px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:var(--fs-lg);color:var(--ink-900);">Congratulations! You're verified.</div>
+        <div style="color:var(--paper-600);font-size:var(--fs-sm);margin-top:6px;max-width:360px;line-height:1.6;">Your identity has been confirmed. You now have a <strong>green verified badge</strong>, priority placement in search results, and access to AutoMart Escrow on every deal.</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;justify-content:center;">
+        <a class="btn btn--primary" href="/app/seller/new.html">List your car now</a>
+        <a class="btn btn--ghost" href="/app/seller/index.html">Go to dashboard</a>
+      </div>
+    </div>`;
+}
+
+// Show status states
+if (sp?.verification_status === 'approved') {
+  showApproved(); return;
+} else if (sp?.verification_status === 'pending') {
+  showRequestReceived(); return;
+} else if (sp?.verification_status === 'rejected') {
+  const pill = activeCard.querySelector('.pill');
+  pill.className = 'pill pill--bad';
+  pill.innerHTML = '✕ Action required';
+  if (sp.rejection_reason) {
+    const notice = document.createElement('div');
+    notice.style.cssText = 'padding:12px 14px;background:var(--bad-50);border:1px solid var(--bad-100);border-radius:10px;margin-bottom:12px;color:var(--bad-700);font-size:var(--fs-sm);';
+    notice.innerHTML = `<strong>Rejected:</strong> ${sp.rejection_reason}. Please re-upload your documents.`;
+    stepBody.prepend(notice);
+  }
+}
+
+function markUploaded(idx, label) {
+  const cells = grid2.children;
+  if (!cells[idx]) return;
+  cells[idx].outerHTML = `<div class="uploaded" data-slot="${idx}">
+    <div style="width:48px;height:32px;border-radius:6px;background:var(--paper-100);"></div>
+    <div style="flex:1;"><strong style="font-size:var(--fs-sm);color:var(--ok-700);">${label} ✓</strong></div>
+    <button class="btn btn--ghost btn--sm" data-replace="${idx}">Replace</button>
+  </div>`;
+}
+function markUploadedSelfie() {
+  const selfieZones = stepBody.querySelectorAll('.upload-zone');
+  const sZone = selfieZones[selfieZones.length-1];
+  if (!sZone) return;
+  sZone.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ok-500)" stroke-width="1.5"><path d="M5 13l4 4L19 7"/></svg><strong style="color:var(--ok-700);">Selfie uploaded ✓</strong><span>Tap to replace</span>`;
+  sZone.style.borderColor = 'var(--ok-200)';
+  sZone.style.background = 'var(--ok-50)';
+}
+
+function makeFileInput(accept, callback) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = accept; inp.style.display = 'none';
+  document.body.appendChild(inp);
+  inp.addEventListener('change', () => { if (inp.files[0]) callback(inp.files[0]); inp.value=''; });
+  return inp;
+}
+
+async function uploadFile(file, fieldName) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `${user.id}/${fieldName}_${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from('verifications').upload(path, file, { upsert: true });
+  if (error) throw error;
+  return path;
+}
+
+// Attach click handlers to upload zones in grid
+if (grid2) {
+  Array.from(grid2.children).forEach((cell, i) => {
+    if (!cell.classList.contains('upload-zone')) return;
+    const fieldName = i === 0 ? 'cnic_front' : 'cnic_back';
+    const label = i === 0 ? 'CNIC front' : 'CNIC back';
+    const inp = makeFileInput('image/jpeg,image/png,image/webp', async file => {
+      cell.innerHTML = `<strong style="color:var(--paper-500);">Uploading…</strong>`;
+      try {
+        const path = await uploadFile(file, fieldName);
+        uploads[fieldName] = path;
+        cell.outerHTML = `<div class="uploaded" data-slot="${i}"><div style="width:48px;height:32px;border-radius:6px;background:var(--paper-100);"></div><div style="flex:1;"><strong style="font-size:var(--fs-sm);color:var(--ok-700);">${label} ✓</strong><div style="font-size:11px;color:var(--paper-500);">${file.name}</div></div><button class="btn btn--ghost btn--sm" data-replace="${i}">Replace</button></div>`;
+      } catch (err) { cell.innerHTML = `<strong style="color:var(--bad-600);">Upload failed</strong><span>${err.message}</span>`; }
+    });
+    cell.addEventListener('click', () => inp.click());
+  });
+}
+
+// Selfie upload zone
+const selfieZones = stepBody?.querySelectorAll('.upload-zone');
+const selfieEl = selfieZones?.[selfieZones.length-1];
+if (selfieEl) {
+  const inp = makeFileInput('image/jpeg,image/png,image/webp', async file => {
+    selfieEl.innerHTML = '<strong style="color:var(--paper-500);">Uploading…</strong>';
+    try {
+      const path = await uploadFile(file, 'selfie');
+      uploads.selfie = path;
+      selfieEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ok-500)" stroke-width="1.5"><path d="M5 13l4 4L19 7"/></svg><strong style="color:var(--ok-700);">Selfie uploaded ✓</strong><span>${file.name}</span>`;
+      selfieEl.style.borderColor = 'var(--ok-200)'; selfieEl.style.background = 'var(--ok-50)';
+    } catch (err) { selfieEl.innerHTML = `<strong style="color:var(--bad-600);">Upload failed</strong><span>${err.message}</span>`; }
+  });
+  selfieEl.addEventListener('click', () => inp.click());
+}
+
+async function upsertProfile(status) {
+  const payload = {
+    user_id: user.id,
+    full_name: profile?.display_name || '',
+    verification_status: status,
+    ...(uploads.cnic_front && { id_document_url: uploads.cnic_front }),
+    ...(uploads.cnic_back && { cnic_back_url: uploads.cnic_back }),
+    ...(uploads.selfie && { selfie_url: uploads.selfie }),
+    seller_type: 'individual',
+  };
+  const { error } = await supabase.from('seller_profiles')
+    .upsert(payload, { onConflict: 'user_id' });
+  return error;
+}
+
+submitBtn?.addEventListener('click', async () => {
+  clearError();
+  if (!uploads.cnic_front || !uploads.cnic_back || !uploads.selfie) {
+    showError('Please upload CNIC front, CNIC back, and selfie before submitting.'); return;
+  }
+  submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
+  try {
+    const err = await upsertProfile('pending');
+    if (err) {
+      showError('Submission failed: ' + err.message);
+      submitBtn.disabled = false; submitBtn.textContent = 'Submit for review';
+    } else {
+      clearError();
+      showRequestReceived();
+    }
+  } catch (e) {
+    showError('Unexpected error: ' + e.message);
+    submitBtn.disabled = false; submitBtn.textContent = 'Submit for review';
+  }
+});
+})();
+</script>
+</body></html>

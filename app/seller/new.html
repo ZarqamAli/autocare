@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Create listing · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<style>
+  .new-page { max-width: 1180px; margin: 0 auto; padding: 28px 24px 120px; }
+  .stepper { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .step { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-pill); font-size: var(--fs-xs); font-weight: 600; color: var(--paper-500); background: var(--paper-0); border: var(--border-hair); }
+  .step__num { width: 22px; height: 22px; border-radius: 50%; background: var(--paper-100); color: var(--paper-700); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .step--done { color: var(--ok-700); border-color: var(--ok-100); background: var(--ok-50); }
+  .step--done .step__num { background: var(--ok-500); color: #fff; }
+  .step--active { color: var(--ink-900); border-color: var(--ink-900); background: var(--ink-900); color: #fff; }
+  .step--active .step__num { background: #fff; color: var(--ink-900); }
+  .step-line { flex: 1; height: 1px; background: var(--paper-150); min-width: 12px; max-width: 32px; }
+
+  .grid-3-1 { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 960px) { .grid-3-1 { grid-template-columns: 2fr 1fr; } }
+
+  .panel-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg);
+    padding: 28px; box-shadow: var(--shadow-sm);
+  }
+  .panel-card + .panel-card { margin-top: 18px; }
+  .panel-card h3 { font-size: var(--fs-lg); margin-bottom: 4px; }
+  .panel-card .sub { color: var(--paper-500); font-size: var(--fs-sm); margin-bottom: 22px; }
+
+  .photo-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .photo-cell {
+    aspect-ratio: 4/3; border-radius: 12px;
+    background: var(--paper-50); border: 1px solid var(--paper-150);
+    position: relative; overflow: hidden; cursor: pointer;
+  }
+  .photo-cell .imgslot { border-radius: 0; height: 100%; }
+  .photo-cell--add {
+    border: 1.5px dashed var(--paper-200);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 6px; color: var(--paper-500); font-size: var(--fs-xs);
+    transition: border-color var(--dur), color var(--dur), background var(--dur);
+  }
+  .photo-cell--add:hover { border-color: var(--brand-500); color: var(--brand-700); background: var(--brand-50); }
+  .photo-cell__cover { position: absolute; top: 8px; left: 8px; background: var(--ink-900); color: #fff; font-size: 10px; padding: 3px 7px; border-radius: 999px; font-weight: 600; }
+  .photo-cell__flag {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--warn-500); color: #1a1100; font-size: 10px; font-weight: 700;
+    padding: 4px 8px; border-radius: 999px; display:inline-flex; align-items:center; gap:4px;
+  }
+
+  .ai-flag {
+    margin-top: 16px; padding: 16px;
+    background: linear-gradient(180deg, #fffbeb, #fff); border: 1px solid #fde68a;
+    border-radius: 12px; display: flex; gap: 12px;
+  }
+  .ai-flag__icon { width:36px; height:36px; border-radius:10px; background: var(--warn-500); color:#fff; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .price-card {
+    padding: 22px; border-radius: var(--r-lg);
+    background: linear-gradient(165deg, #1e3a8a, #1e1b4b); color: #fff;
+  }
+  .price-card .kicker { color: rgba(255,255,255,0.6); }
+  .price-card h3 { font-size: 28px; font-family: var(--font-mono); letter-spacing:-0.02em; margin: 6px 0 4px; }
+  .price-card h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #c7d2fe; }
+  .gauge { height: 6px; background: linear-gradient(90deg, #ef4444, #f59e0b 50%, #22c55e); border-radius: 999px; position: relative; margin: 16px 0 8px; }
+  .gauge__pin { position: absolute; top: -7px; width: 4px; height: 20px; background: #fff; border-radius: 999px; box-shadow: 0 0 0 1px rgba(0,0,0,0.2); }
+  .gauge__row { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--font-mono); color: rgba(255,255,255,0.6); }
+
+  .summary-row { display: flex; justify-content: space-between; padding: 9px 0; font-size: var(--fs-sm); border-bottom: 1px dashed var(--paper-150); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row span:first-child { color: var(--paper-500); }
+  .summary-row span:last-child { font-weight: 600; color: var(--ink-900); }
+
+  .footer-cta {
+    position: sticky; bottom: 0; background: var(--paper-0); border-top: var(--border-hair);
+    padding: 14px 24px; margin: 24px -24px -120px; display: flex; justify-content: space-between; align-items:center; gap:12px;
+  }
+</style></head>
+<body>
+<div class="app-shell">
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/index.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <a href="/app/chat/index.html" class="iconbtn" aria-label="Messages" style="text-decoration:none;">
+      <span data-icon="chat" data-size="18"></span>
+      <span class="iconbtn__badge chat-badge" style="display:none;"></span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href="/app/seller/index.html">← Save & exit</a>
+  </div>
+</header>
+
+<main class="new-page">
+
+  <div style="margin-bottom: 18px;" class="am-rise">
+    <span class="kicker">List a car</span>
+    <h1 style="font-size: clamp(28px, 3.6vw, 44px); letter-spacing:-0.02em; margin-top: 8px;">Step 3 of 5 · <em style="font-family:var(--font-serif); font-weight:400; color: var(--brand-700);">Photos</em></h1>
+    <p style="color: var(--paper-500); margin-top: 6px;">8 photos minimum. AI checks for damage, shadows, and angles to suggest retakes.</p>
+  </div>
+
+  <div class="stepper am-rise" data-d="1">
+    <span class="step step--done"><span class="step__num">✓</span>Basics</span>
+    <span class="step-line"></span>
+    <span class="step step--done"><span class="step__num">✓</span>Specs</span>
+    <span class="step-line"></span>
+    <span class="step step--active"><span class="step__num">3</span>Photos</span>
+    <span class="step-line"></span>
+    <span class="step"><span class="step__num">4</span>Price & description</span>
+    <span class="step-line"></span>
+    <span class="step"><span class="step__num">5</span>Review & publish</span>
+  </div>
+
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise" data-d="2">
+        <h3>Photos <span style="font-family:var(--font-mono); color:var(--paper-500); font-size: var(--fs-md); font-weight:500;">7 / 12</span></h3>
+        <p class="sub">Drag to reorder. The cover photo is shown first in search.</p>
+
+        <div class="photo-grid">
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div><span class="photo-cell__cover">Cover · Front 3/4</span></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div><span class="photo-cell__flag"><span data-icon="alert" data-size="10"></span> Retake</span></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+          <div class="photo-cell"><div class="imgslot"><div class="imgslot__car"></div></div></div>
+          <div class="photo-cell photo-cell--add"><span data-icon="cam" data-size="22"></span><span>Drop or upload</span></div>
+        </div>
+
+        <div class="ai-flag">
+          <div class="ai-flag__icon"><span data-icon="sparkle" data-size="18"></span></div>
+          <div>
+            <div style="font-weight:700; color:#78350f;">AI co-pilot · 1 issue and 1 missing angle</div>
+            <ul style="font-size:var(--fs-sm); color:#854d0e; margin: 6px 0 0; padding-left: 18px; line-height:1.7;">
+              <li>Photo 3 — minor dent visible on rear quarter panel. Disclose in description, or retake from a different angle.</li>
+              <li>Missing: <strong>odometer close-up</strong>. Listings with odometer photos get 38% more inquiries.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-card am-rise" data-d="3">
+        <h3>Vehicle history (optional)</h3>
+        <p class="sub">Adding records like service history or insurance papers raises trust. They're shown only after a serious offer.</p>
+        <div class="col" style="gap: 10px;">
+          <label class="row gap-2" style="padding: 12px 14px; border: var(--border-hair); border-radius: 10px; cursor: pointer;">
+            <span data-icon="doc" data-size="18" style="color:var(--paper-500);"></span>
+            <span style="flex:1;"><strong>Service history</strong><br><span style="font-size:var(--fs-xs); color:var(--paper-500);">Service book or receipts</span></span>
+            <span class="btn btn--ghost btn--sm">Upload</span>
+          </label>
+          <label class="row gap-2" style="padding: 12px 14px; border: var(--border-hair); border-radius: 10px; cursor: pointer;">
+            <span data-icon="doc" data-size="18" style="color:var(--paper-500);"></span>
+            <span style="flex:1;"><strong>Registration book</strong><br><span style="font-size:var(--fs-xs); color:var(--paper-500);">Required for verification</span></span>
+            <span class="pill pill--ok"><span data-icon="verified" data-size="11"></span>Uploaded</span>
+          </label>
+          <label class="row gap-2" style="padding: 12px 14px; border: var(--border-hair); border-radius: 10px; cursor: pointer;">
+            <span data-icon="doc" data-size="18" style="color:var(--paper-500);"></span>
+            <span style="flex:1;"><strong>Accident / insurance claims</strong><br><span style="font-size:var(--fs-xs); color:var(--paper-500);">Optional but builds trust</span></span>
+            <span class="btn btn--ghost btn--sm">Upload</span>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <aside class="col" style="gap:18px;">
+      <div class="price-card am-rise" data-d="3">
+        <span class="kicker">AI live preview · auto-priced</span>
+        <h3>PKR 47.5<em>L</em></h3>
+        <div style="color:rgba(255,255,255,0.6); font-size: var(--fs-xs);">Suggested ask · 8% above your floor</div>
+        <div class="gauge"><div class="gauge__pin" style="left: 62%;"></div></div>
+        <div class="gauge__row"><span>Bargain · 41L</span><span>Fair · 46L</span><span>High · 52L</span></div>
+      </div>
+
+      <div class="panel-card am-rise" data-d="4" style="padding: 22px;">
+        <h4 style="font-weight:700; margin-bottom: 10px; font-size: var(--fs-md);">Listing summary</h4>
+        <div class="summary-row"><span>Make / model</span><span>Honda Civic Oriel UG</span></div>
+        <div class="summary-row"><span>Year</span><span>2018</span></div>
+        <div class="summary-row"><span>Mileage</span><span>62,300 km</span></div>
+        <div class="summary-row"><span>City</span><span>Lahore</span></div>
+        <div class="summary-row"><span>Photos</span><span>7 / 12</span></div>
+        <div class="summary-row"><span>Documents</span><span style="color:var(--ok-700)">1 of 3</span></div>
+      </div>
+
+      <div class="panel-card am-rise" data-d="5" style="padding: 18px; background: var(--paper-50); box-shadow:none;">
+        <div style="font-weight:700; color:var(--ink-900); font-size:var(--fs-sm); margin-bottom:6px;">💡 Listings with 8+ photos sell <strong style="font-family:var(--font-mono);">2.4×</strong> faster</div>
+        <div style="font-size: var(--fs-xs); color:var(--paper-500); line-height:1.55;">Add at least one photo each of the front, rear, both sides, interior, dashboard with odometer, and engine bay.</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="footer-cta">
+    <button class="btn btn--ghost">← Back to specs</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost">Save draft</button>
+      <button class="btn btn--primary">Continue to price →</button>
+    </div>
+  </div>
+</main>
+</div>
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, getUserProfile, formatPKR, PAKISTAN_CITIES, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+
+const user = await getCurrentUser();
+const profile = await getUserProfile();
+if (!user) { window.location.replace('/app/login.html'); return; }
+if (profile?.primary_role !== 'seller' && profile?.primary_role !== 'owner' && !profile?.is_admin) { window.location.replace('/app/buyer/index.html'); return; }
+  document.body.style.visibility = '';
+
+await initUnreadBadge('.chat-badge');
+supabase.channel('seller-new-inbox')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
+    () => initUnreadBadge('.chat-badge'))
+  .subscribe();
+
+const isOwner = profile?.primary_role === 'owner';
+let ownerVehicles = [];
+if (isOwner) {
+  const { data: ovs } = await supabase.from('vehicles').select('id, make, model, variant, year, health_scores(score)').eq('owner_id', user.id).order('year', { ascending: false });
+  ownerVehicles = ovs || [];
+}
+
+const params = new URLSearchParams(location.search);
+const editId = params.get('id');
+
+let formData = JSON.parse(sessionStorage.getItem('am_new_listing') || '{}');
+// Normalize any old capitalized enum values that were cached in sessionStorage
+['accident_history','assembly','transmission','fuel_type','condition','body_type'].forEach(k => {
+  if (formData[k]) formData[k] = formData[k].toLowerCase();
+});
+let currentStep = 1;
+let listingId = formData.listingId || editId || null;
+let uploadedPhotos = []; // {path, url, file}
+
+// If editing, load existing listing
+if (editId && editId !== formData.listingId) {
+  const { data: ex } = await supabase.from('listings').select('*, listing_photos(id, url, is_primary, display_order)').eq('id', editId).eq('seller_id', user.id).single();
+  if (ex) {
+    formData = { listingId: ex.id, make: ex.make, model: ex.model, variant: ex.variant||'', year: ex.year, city: ex.city, body_type: ex.body_type||'', assembly: ex.assembly||'', mileage: ex.mileage, transmission: ex.transmission||'', fuel_type: ex.fuel_type||'', condition: ex.condition||'used', color: ex.color||'', ownership_count: ex.ownership_count||1, accident_history: ex.accident_history||'none', price_minor: ex.price_minor, description: ex.description||'' };
+    listingId = ex.id;
+    // Pre-populate uploaded photos from listing_photos
+    uploadedPhotos = (ex.listing_photos||[]).map(p => ({ path: p.storage_path||p.url, url: p.url, id: p.id, is_primary: p.is_primary }));
+  }
+}
+
+const main = document.querySelector('.new-page');
+
+const YEARS = Array.from({length: new Date().getFullYear()-1989}, (_,i) => new Date().getFullYear()-i);
+const TRANSMISSIONS = [['automatic','Automatic'],['manual','Manual'],['cvt','CVT'],['ags','AGS'],['amt','AMT']];
+const FUELS = [['petrol','Petrol'],['diesel','Diesel'],['hybrid','Hybrid'],['electric','Electric'],['cng','CNG']];
+const BODIES = [['sedan','Sedan'],['hatchback','Hatchback'],['suv','SUV'],['crossover','Crossover'],['pickup','Pickup'],['van','Van'],['wagon','Wagon'],['coupe','Coupe']];
+const CONDITIONS = [['used','Used'],['new','New']];
+const ASSEMBLIES = [['local','Local'],['imported','Imported']];
+
+function opt(val, selected, label) { return `<option value="${val}" ${selected===val?'selected':''}>${label||val}</option>`; }
+function sel(id, arr, val, placeholder='Select…') {
+  return `<select id="${id}" class="select">${placeholder?`<option value="">${placeholder}</option>`:''}${arr.map(([v,l])=>opt(v,val,l)).join('')}</select>`;
+}
+
+function updateStepper(active) {
+  const steps = [{l:'Basics',n:1},{l:'Specs',n:2},{l:'Photos',n:3},{l:'Price & description',n:4},{l:'Review & publish',n:5}];
+  const s = main.querySelector('.stepper');
+  if (!s) return;
+  s.innerHTML = steps.map((st,i) => {
+    const cls = st.n < active ? 'step--done' : st.n === active ? 'step--active' : '';
+    return `<span class="step ${cls}"><span class="step__num">${st.n < active ? '✓' : st.n}</span>${st.l}</span>${i<4?'<span class="step-line"></span>':''}`;
+  }).join('');
+}
+
+function setContent(html) {
+  const grid = main.querySelector('.grid-3-1');
+  if (grid) grid.outerHTML = html;
+  else main.querySelector('.panel-card, section.panel-card, .footer-cta')?.closest('.grid-3-1, div')?.remove();
+  main.insertAdjacentHTML('beforeend', html);
+}
+
+function footerCta(backLabel, backAction, nextLabel, nextAction) {
+  return `<div class="footer-cta">
+    <button class="btn btn--ghost" id="btn-back">${backLabel||'← Back'}</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save draft</button>
+      <button class="btn btn--primary" id="btn-next">${nextLabel||'Continue →'}</button>
+    </div>
+  </div>`;
+}
+
+function renderStep1() {
+  updateStepper(1);
+  main.querySelector('.grid-3-1')?.remove();
+  main.querySelector('.footer-cta')?.remove();
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise">
+        <h3>Vehicle basics</h3>
+        <p class="sub">This forms your listing title.</p>
+        ${isOwner ? `<div class="field" style="margin-bottom:18px;padding:14px;background:var(--brand-50);border:1px solid var(--brand-100);border-radius:10px;">
+          <label class="field__label" for="f-vehicle">Link your registered vehicle <span style="color:var(--paper-400);font-weight:400;">(optional)</span></label>
+          ${ownerVehicles.length ? `<select id="f-vehicle" class="select" style="margin-top:4px;">
+            <option value="">— Enter details manually —</option>
+            ${ownerVehicles.map(v => {
+              const score = v.health_scores?.[0]?.score ?? v.health_scores?.score ?? null;
+              return `<option value="${v.id}" data-make="${v.make}" data-model="${v.model}" data-variant="${v.variant||''}" data-year="${v.year}" data-score="${score??''}">
+                ${v.year} ${v.make} ${v.model}${v.variant?' '+v.variant:''}${score!=null?' · Health '+score:''}
+              </option>`;
+            }).join('')}
+          </select>` : `<p style="font-size:var(--fs-sm);color:var(--paper-600);margin:4px 0 8px;">No vehicles registered yet.</p><a href="/app/owner/add-vehicle.html" class="btn btn--ghost btn--sm">Add a vehicle →</a>`}
+        </div>` : ''}
+        <div class="col" style="gap:14px;">
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Make <span style="color:var(--bad-500)">*</span></label><input id="f-make" class="input" value="${formData.make||''}" placeholder="Honda, Toyota, Suzuki…"></div>
+            <div class="field" style="flex:1;"><label class="field__label">Model <span style="color:var(--bad-500)">*</span></label><input id="f-model" class="input" value="${formData.model||''}" placeholder="Civic, Corolla…"></div>
+          </div>
+          <div class="field"><label class="field__label">Variant</label><input id="f-variant" class="input" value="${formData.variant||''}" placeholder="e.g. Oriel UG, GLi (optional)"></div>
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Year <span style="color:var(--bad-500)">*</span></label><select id="f-year" class="select"><option value="">Select year</option>${YEARS.map(y=>`<option value="${y}" ${formData.year==y?'selected':''}>${y}</option>`).join('')}</select></div>
+            <div class="field" style="flex:1;"><label class="field__label">City <span style="color:var(--bad-500)">*</span></label><select id="f-city" class="select"><option value="">Select city</option>${PAKISTAN_CITIES.map(c=>`<option value="${c}" ${formData.city===c?'selected':''}>${c}</option>`).join('')}</select></div>
+          </div>
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Body type</label>${sel('f-body', BODIES, formData.body_type||'', 'Select…')}</div>
+            <div class="field" style="flex:1;"><label class="field__label">Assembly</label>${sel('f-assembly', ASSEMBLIES, formData.assembly||'', 'Select…')}</div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <aside class="col" style="gap:18px;">
+      <div class="panel-card am-rise" style="padding:18px;background:var(--paper-50);box-shadow:none;">
+        <strong style="display:block;margin-bottom:6px;font-size:var(--fs-sm);">💡 Tips for a great listing</strong>
+        <ul style="font-size:var(--fs-xs);color:var(--paper-500);line-height:1.7;padding-left:16px;margin:0;">
+          <li>Use the exact model name (buyers search by this)</li>
+          <li>Include the variant — it affects pricing by up to 30%</li>
+          <li>Listings with 8+ photos sell 2.4× faster</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+  <div class="footer-cta">
+    <a href="/app/seller/index.html" class="btn btn--ghost">← Cancel</a>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save draft</button>
+      <button class="btn btn--primary" id="btn-next">Continue to specs →</button>
+    </div>
+  </div>`);
+
+  // Vehicle picker auto-fill
+  const vPicker = document.getElementById('f-vehicle');
+  if (vPicker) {
+    vPicker.addEventListener('change', () => {
+      const opt = vPicker.options[vPicker.selectedIndex];
+      if (!opt.value) { formData.vehicle_id = null; formData.health_score_snapshot = null; return; }
+      document.getElementById('f-make').value = opt.dataset.make || '';
+      document.getElementById('f-model').value = opt.dataset.model || '';
+      document.getElementById('f-variant').value = opt.dataset.variant || '';
+      const yr = opt.dataset.year;
+      const yrSel = document.getElementById('f-year');
+      if (yr && yrSel) { yrSel.value = yr; }
+      formData.vehicle_id = opt.value;
+      formData.health_score_snapshot = opt.dataset.score ? parseInt(opt.dataset.score) : null;
+    });
+    // Restore prior selection
+    if (formData.vehicle_id) { vPicker.value = formData.vehicle_id; }
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => {
+    const make = document.getElementById('f-make').value.trim();
+    const model = document.getElementById('f-model').value.trim();
+    const year = document.getElementById('f-year').value;
+    const city = document.getElementById('f-city').value;
+    if (!make || !model || !year || !city) { alert('Please fill in Make, Model, Year, and City.'); return; }
+    Object.assign(formData, { make, model, variant: document.getElementById('f-variant').value.trim(), year: parseInt(year), city, body_type: document.getElementById('f-body').value, assembly: document.getElementById('f-assembly').value });
+    sessionStorage.setItem('am_new_listing', JSON.stringify(formData));
+    currentStep = 2; renderStep2();
+  });
+  document.getElementById('btn-save').addEventListener('click', () => saveDraft());
+}
+
+function renderStep2() {
+  updateStepper(2);
+  main.querySelector('.grid-3-1')?.remove();
+  main.querySelector('.footer-cta')?.remove();
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise">
+        <h3>Specifications</h3><p class="sub">Technical details help buyers filter and compare.</p>
+        <div class="col" style="gap:14px;">
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Mileage (km) <span style="color:var(--bad-500)">*</span></label><input id="f-mileage" class="input" type="number" min="0" value="${formData.mileage||''}" placeholder="e.g. 45000"></div>
+            <div class="field" style="flex:1;"><label class="field__label">Color</label><input id="f-color" class="input" value="${formData.color||''}" placeholder="e.g. White Pearl"></div>
+          </div>
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Transmission <span style="color:var(--bad-500)">*</span></label>${sel('f-transmission', TRANSMISSIONS, formData.transmission||'', 'Select…')}</div>
+            <div class="field" style="flex:1;"><label class="field__label">Fuel type <span style="color:var(--bad-500)">*</span></label>${sel('f-fuel', FUELS, formData.fuel_type||'', 'Select…')}</div>
+          </div>
+          <div class="row gap-2">
+            <div class="field" style="flex:1;"><label class="field__label">Condition</label>${sel('f-condition', CONDITIONS, formData.condition||'Used', '')}</div>
+            <div class="field" style="flex:1;"><label class="field__label">Owners</label><select id="f-owners" class="select">${[1,2,3,4].map(n=>`<option value="${n}" ${formData.ownership_count==n?'selected':''}>${n}${n===4?'+':''} owner${n>1?'s':''}</option>`).join('')}</select></div>
+          </div>
+          <div class="field"><label class="field__label">Accident history</label><select id="f-accident" class="select">${[['none','None'],['minor','Minor'],['major','Major']].map(([val,lbl])=>`<option value="${val}" ${formData.accident_history===val?'selected':''}>${lbl}</option>`).join('')}</select></div>
+        </div>
+      </section>
+    </div>
+    <aside class="col" style="gap:18px;">
+      <div class="panel-card am-rise" style="padding:18px;">
+        <h4 style="font-weight:700;margin-bottom:10px;font-size:var(--fs-md);">Listing summary</h4>
+        <div class="summary-row"><span>Make / model</span><span>${formData.make||'—'} ${formData.model||''} ${formData.variant||''}</span></div>
+        <div class="summary-row"><span>Year</span><span>${formData.year||'—'}</span></div>
+        <div class="summary-row"><span>City</span><span>${formData.city||'—'}</span></div>
+      </div>
+    </aside>
+  </div>
+  <div class="footer-cta">
+    <button class="btn btn--ghost" id="btn-back">← Back to basics</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save draft</button>
+      <button class="btn btn--primary" id="btn-next">Continue to photos →</button>
+    </div>
+  </div>`);
+
+  document.getElementById('btn-back').addEventListener('click', () => { currentStep=1; renderStep1(); });
+  document.getElementById('btn-next').addEventListener('click', async () => {
+    const mileage = document.getElementById('f-mileage').value;
+    const trans = document.getElementById('f-transmission').value;
+    const fuel = document.getElementById('f-fuel').value;
+    if (!mileage || !trans || !fuel) { alert('Please fill in Mileage, Transmission, and Fuel type.'); return; }
+    Object.assign(formData, { mileage: parseInt(mileage), transmission: trans, fuel_type: fuel, condition: document.getElementById('f-condition').value, color: document.getElementById('f-color').value.trim(), ownership_count: parseInt(document.getElementById('f-owners').value), accident_history: document.getElementById('f-accident').value });
+    // Create or update draft listing now so we have an ID for photos
+    const btn = document.getElementById('btn-next');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    if (!listingId) {
+      const { listingId: _lid, ...insertFields } = formData;
+      const { data, error } = await supabase.from('listings').insert({ seller_id: user.id, ...insertFields, price_minor: 0, status: 'paused' }).select('id').single();
+      if (error) {
+        let errEl = document.getElementById('step2-err');
+        if (!errEl) { errEl = document.createElement('p'); errEl.id = 'step2-err'; errEl.style.cssText = 'color:#dc2626;font-size:14px;margin:8px 0 0;font-weight:600;'; btn.parentElement.after(errEl); }
+        errEl.textContent = error.message; btn.disabled=false; btn.textContent='Continue to photos →'; return;
+      }
+      listingId = data.id; formData.listingId = listingId;
+    } else {
+      const { listingId: _lid, ...updateFields } = formData;
+      await supabase.from('listings').update({ ...updateFields, updated_at: new Date().toISOString() }).eq('id', listingId);
+    }
+    sessionStorage.setItem('am_new_listing', JSON.stringify(formData));
+    currentStep = 3; renderStep3();
+  });
+  document.getElementById('btn-save').addEventListener('click', () => saveDraft());
+}
+
+function renderStep3() {
+  updateStepper(3);
+  main.querySelector('.grid-3-1')?.remove();
+  main.querySelector('.footer-cta')?.remove();
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise">
+        <h3>Photos <span style="font-family:var(--font-mono);color:var(--paper-500);font-size:var(--fs-md);font-weight:500;" id="photo-count">${uploadedPhotos.length} / 12</span></h3>
+        <p class="sub">The first photo becomes your cover. Minimum 1 photo required, 8+ recommended.</p>
+        <div class="photo-grid" id="photo-grid">
+          ${renderPhotoGrid()}
+        </div>
+        <div class="ai-flag" id="photo-tip" style="${uploadedPhotos.length>=8?'display:none;':''}">
+          <div class="ai-flag__icon"><span data-icon="sparkle" data-size="18"></span></div>
+          <div><div style="font-weight:700;color:#78350f;">Listings with 8+ photos sell 2.4× faster</div><div style="font-size:var(--fs-sm);color:#854d0e;margin-top:4px;">Add front, rear, both sides, interior, dashboard, odometer, and engine bay.</div></div>
+        </div>
+      </section>
+    </div>
+    <aside class="col" style="gap:18px;">
+      <div class="panel-card am-rise" style="padding:18px;">
+        <h4 style="font-weight:700;margin-bottom:10px;font-size:var(--fs-md);">Listing summary</h4>
+        <div class="summary-row"><span>Make / model</span><span>${formData.make} ${formData.model}${formData.variant?' '+formData.variant:''}</span></div>
+        <div class="summary-row"><span>Year</span><span>${formData.year}</span></div>
+        <div class="summary-row"><span>City</span><span>${formData.city}</span></div>
+        <div class="summary-row"><span>Photos</span><span id="sum-photos">${uploadedPhotos.length} / 12</span></div>
+      </div>
+    </aside>
+  </div>
+  <div class="footer-cta">
+    <button class="btn btn--ghost" id="btn-back">← Back to specs</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save draft</button>
+      <button class="btn btn--primary" id="btn-next">Continue to price →</button>
+    </div>
+  </div>`);
+
+  wirePhotoGrid();
+  document.getElementById('btn-back').addEventListener('click', () => { currentStep=2; renderStep2(); });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    if (!uploadedPhotos.length) { alert('Please upload at least one photo.'); return; }
+    currentStep=4; renderStep4();
+  });
+  document.getElementById('btn-save').addEventListener('click', () => saveDraft());
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(main);
+}
+
+function renderPhotoGrid() {
+  const cells = uploadedPhotos.map((p,i) => `
+    <div class="photo-cell" data-idx="${i}">
+      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+      ${i===0 ? '<span class="photo-cell__cover">Cover</span>' : ''}
+      <button class="iconbtn" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:#fff;width:24px;height:24px;border-radius:6px;" data-del="${i}"><span style="font-size:12px;">✕</span></button>
+    </div>`).join('');
+  return cells + `<div class="photo-cell photo-cell--add" id="add-photo-btn"><span data-icon="cam" data-size="22"></span><span>Add photos</span></div>`;
+}
+
+function wirePhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  const addBtn = grid.querySelector('#add-photo-btn');
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/jpeg,image/png,image/webp'; fileInput.multiple = true; fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+
+  addBtn?.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const files = Array.from(fileInput.files);
+    if (!files.length) return;
+    addBtn.innerHTML = '<span style="font-size:var(--fs-xs);">Uploading…</span>';
+    for (const file of files) {
+      if (uploadedPhotos.length >= 12) break;
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${listingId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('listings').upload(path, file);
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage.from('listings').getPublicUrl(path);
+        uploadedPhotos.push({ path, url: publicUrl });
+        // Insert listing_photo row
+        await supabase.from('listing_photos').insert({ listing_id: listingId, url: publicUrl, storage_path: path, is_primary: uploadedPhotos.length===1, display_order: uploadedPhotos.length-1 });
+        // Update primary_photo_url on listing
+        if (uploadedPhotos.length === 1) {
+          await supabase.from('listings').update({ primary_photo_url: publicUrl }).eq('id', listingId);
+        }
+      }
+    }
+    fileInput.value = '';
+    document.getElementById('photo-count').textContent = uploadedPhotos.length+' / 12';
+    document.getElementById('sum-photos').textContent = uploadedPhotos.length+' / 12';
+    document.getElementById('photo-tip').style.display = uploadedPhotos.length >= 8 ? 'none' : '';
+    grid.innerHTML = renderPhotoGrid();
+    wirePhotoGrid();
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(grid);
+  });
+
+  // Delete buttons
+  grid.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const i = parseInt(btn.dataset.del);
+      const photo = uploadedPhotos[i];
+      if (photo.path) await supabase.storage.from('listings').remove([photo.path]);
+      if (photo.id) await supabase.from('listing_photos').delete().eq('id', photo.id);
+      uploadedPhotos.splice(i, 1);
+      document.getElementById('photo-count').textContent = uploadedPhotos.length+' / 12';
+      grid.innerHTML = renderPhotoGrid();
+      wirePhotoGrid();
+    });
+  });
+}
+
+function renderStep4() {
+  updateStepper(4);
+  const priceL = formData.price_minor ? (formData.price_minor/100/100000).toFixed(1) : '';
+  main.querySelector('.grid-3-1')?.remove();
+  main.querySelector('.footer-cta')?.remove();
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise">
+        <h3>Asking price</h3><p class="sub">Enter in PKR (Lakhs). AI will check market comparables.</p>
+        <div class="field">
+          <label class="field__label">Price (PKR) <span style="color:var(--bad-500)">*</span></label>
+          <div class="input-affix"><span class="input-affix__lead">₨</span><input id="f-price" class="input" type="number" min="0" value="${formData.price_minor?(formData.price_minor/100):''}" placeholder="e.g. 4500000 for 45 Lakh"></div>
+          <span class="field__hint">Enter the full amount in PKR (not Lakhs). E.g. 4500000 for PKR 45L.</span>
+        </div>
+      </section>
+      <section class="panel-card am-rise" style="margin-top:18px;">
+        <h3>Description</h3><p class="sub">Tell buyers what makes this car special.</p>
+        <div class="field">
+          <textarea id="f-desc" class="input" rows="6" style="height:auto;resize:vertical;" placeholder="Single owner, full service history, no accidents…">${formData.description||''}</textarea>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="btn-ai-desc" style="margin-top:8px;"><span data-icon="sparkle" data-size="14"></span> Generate with AI</button>
+        <div id="ai-desc-status" style="font-size:var(--fs-xs);color:var(--paper-500);margin-top:6px;"></div>
+      </section>
+    </div>
+    <aside class="col" style="gap:18px;">
+      <div class="price-card am-rise">
+        <span class="kicker">Market context</span>
+        <h3 id="price-preview">${priceL ? 'PKR '+priceL+'L' : 'Enter price'}</h3>
+        <div style="color:rgba(255,255,255,0.6);font-size:var(--fs-xs);margin-top:4px;">Based on ${formData.year||''} ${formData.make||''} ${formData.model||''}</div>
+      </div>
+    </aside>
+  </div>
+  <div class="footer-cta">
+    <button class="btn btn--ghost" id="btn-back">← Back to photos</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save draft</button>
+      <button class="btn btn--primary" id="btn-next">Continue to review →</button>
+    </div>
+  </div>`);
+
+  document.getElementById('f-price').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    document.getElementById('price-preview').textContent = !isNaN(v) ? 'PKR '+(v/100000).toFixed(1)+'L' : 'Enter price';
+  });
+
+  document.getElementById('btn-ai-desc')?.addEventListener('click', async () => {
+    const status = document.getElementById('ai-desc-status');
+    status.textContent = 'Generating…';
+    try {
+      const { data } = await supabase.functions.invoke('gemini-description', { body: { make: formData.make, model: formData.model, variant: formData.variant, year: formData.year, mileage: formData.mileage, transmission: formData.transmission, condition: formData.condition, color: formData.color, city: formData.city } });
+      if (data?.description) { document.getElementById('f-desc').value = data.description; status.textContent = 'Generated ✓ — feel free to edit.'; }
+      else status.textContent = 'AI unavailable. Please write a description manually.';
+    } catch { status.textContent = 'AI unavailable. Please write a description manually.'; }
+  });
+
+  document.getElementById('btn-back').addEventListener('click', () => { currentStep=3; renderStep3(); });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    const price = parseFloat(document.getElementById('f-price').value);
+    if (isNaN(price) || price <= 0) {
+      let errEl = document.getElementById('price-err');
+      if (!errEl) { errEl = document.createElement('p'); errEl.id = 'price-err'; errEl.style.cssText = 'color:#dc2626;font-size:14px;margin:8px 0 0;font-weight:600;'; document.getElementById('f-price').parentElement.parentElement.after(errEl); }
+      errEl.textContent = 'Please enter a valid price.'; return;
+    }
+    Object.assign(formData, { price_minor: Math.round(price * 100), description: document.getElementById('f-desc').value.trim() });
+    sessionStorage.setItem('am_new_listing', JSON.stringify(formData));
+    currentStep=5; renderStep5();
+  });
+  document.getElementById('btn-save').addEventListener('click', () => { formData.price_minor = Math.round((parseFloat(document.getElementById('f-price').value)||0)*100); formData.description = document.getElementById('f-desc').value.trim(); saveDraft(); });
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(main);
+}
+
+function renderStep5() {
+  updateStepper(5);
+  main.querySelector('.grid-3-1')?.remove();
+  main.querySelector('.footer-cta')?.remove();
+  const priceL = formData.price_minor ? (formData.price_minor/100/100000).toFixed(1) : '—';
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid-3-1">
+    <div>
+      <section class="panel-card am-rise">
+        <h3>Review your listing</h3><p class="sub">This is what buyers will see. Double-check everything before publishing.</p>
+        <div class="col" style="gap:4px;margin-top:12px;">
+          <div class="summary-row"><span>Make / model</span><span>${formData.make} ${formData.model}${formData.variant?' '+formData.variant:''}</span></div>
+          <div class="summary-row"><span>Year</span><span>${formData.year}</span></div>
+          <div class="summary-row"><span>City</span><span>${formData.city}</span></div>
+          <div class="summary-row"><span>Mileage</span><span>${(formData.mileage||0).toLocaleString()} km</span></div>
+          <div class="summary-row"><span>Transmission</span><span>${formData.transmission}</span></div>
+          <div class="summary-row"><span>Fuel type</span><span>${formData.fuel_type}</span></div>
+          <div class="summary-row"><span>Condition</span><span>${formData.condition}</span></div>
+          <div class="summary-row"><span>Color</span><span>${formData.color||'—'}</span></div>
+          <div class="summary-row"><span>Owners</span><span>${formData.ownership_count}</span></div>
+          <div class="summary-row"><span>Accidents</span><span>${formData.accident_history||'None'}</span></div>
+          <div class="summary-row"><span>Photos</span><span>${uploadedPhotos.length}</span></div>
+          <div class="summary-row"><span>Asking price</span><span style="font-family:var(--font-mono);font-weight:700;">PKR ${priceL}L</span></div>
+        </div>
+        ${formData.description ? `<div style="margin-top:14px;padding:14px;background:var(--paper-50);border-radius:10px;font-size:var(--fs-sm);color:var(--paper-700);line-height:1.6;">${formData.description}</div>` : ''}
+        ${uploadedPhotos.length ? `<div class="photo-grid" style="margin-top:14px;">${uploadedPhotos.slice(0,4).map((p,i)=>`<div class="photo-cell">${i===0?'<span class="photo-cell__cover">Cover</span>':''}<img src="${p.url}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>`).join('')}</div>` : ''}
+      </section>
+    </div>
+    <aside class="col" style="gap:18px;">
+      <div class="price-card am-rise">
+        <span class="kicker">Asking price</span>
+        <h3>PKR ${priceL}<em>L</em></h3>
+      </div>
+      <div class="panel-card am-rise" style="padding:18px;background:var(--ok-50);border:1px solid var(--ok-100);box-shadow:none;">
+        <strong style="color:var(--ok-800);display:block;margin-bottom:6px;font-size:var(--fs-sm);">✓ Ready to publish</strong>
+        <p style="font-size:var(--fs-xs);color:var(--ok-700);line-height:1.55;margin:0;">Your listing will go live immediately and appear in search results.</p>
+      </div>
+    </aside>
+  </div>
+  <div class="footer-cta">
+    <button class="btn btn--ghost" id="btn-back">← Back to price</button>
+    <div class="row gap-2">
+      <button class="btn btn--ghost" id="btn-save">Save as draft</button>
+      <button class="btn btn--primary" id="btn-publish" style="background:var(--ok-600);">🚀 Publish listing</button>
+    </div>
+  </div>`);
+
+  document.getElementById('btn-back').addEventListener('click', () => { currentStep=4; renderStep4(); });
+  document.getElementById('btn-save').addEventListener('click', () => saveDraft(true));
+  document.getElementById('btn-publish').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-publish');
+    btn.disabled = true; btn.textContent = 'Publishing…';
+    const { error } = await supabase.from('listings').update({
+      make: formData.make, model: formData.model, variant: formData.variant||null,
+      year: formData.year, city: formData.city, body_type: formData.body_type||null, assembly: formData.assembly||null,
+      mileage: formData.mileage, transmission: formData.transmission, fuel_type: formData.fuel_type,
+      condition: formData.condition, color: formData.color||null, ownership_count: formData.ownership_count, accident_history: formData.accident_history||null,
+      price_minor: formData.price_minor, description: formData.description||null,
+      vehicle_id: formData.vehicle_id||null, health_score_snapshot: formData.health_score_snapshot||null,
+      status: 'active', updated_at: new Date().toISOString()
+    }).eq('id', listingId);
+    if (error) {
+      let errEl = document.getElementById('pub-err');
+      if (!errEl) { errEl = document.createElement('p'); errEl.id = 'pub-err'; errEl.style.cssText = 'color:#dc2626;font-size:14px;margin:8px 0 0;font-weight:600;'; btn.parentElement.after(errEl); }
+      errEl.textContent = 'Publish failed: ' + error.message; btn.disabled=false; btn.textContent='🚀 Publish listing'; return;
+    }
+    sessionStorage.removeItem('am_new_listing');
+    window.location.href = isOwner ? '/app/owner/dashboard.html#listings' : `/app/listing/detail.html?id=${listingId}`;
+  });
+}
+
+async function saveDraft(goToIndex = false) {
+  if (!listingId) { sessionStorage.setItem('am_new_listing', JSON.stringify(formData)); if(goToIndex) window.location.href='/app/seller/index.html'; return; }
+  await supabase.from('listings').update({ make: formData.make||null, model: formData.model||null, variant: formData.variant||null, year: formData.year||null, city: formData.city||null, body_type: formData.body_type||null, assembly: formData.assembly||null, mileage: formData.mileage||null, transmission: formData.transmission||null, fuel_type: formData.fuel_type||null, condition: formData.condition||null, color: formData.color||null, ownership_count: formData.ownership_count||1, accident_history: formData.accident_history||null, price_minor: formData.price_minor||null, description: formData.description||null, updated_at: new Date().toISOString() }).eq('id', listingId);
+  sessionStorage.setItem('am_new_listing', JSON.stringify(formData));
+  if (goToIndex) window.location.href = '/app/seller/index.html';
+  else { const sb = document.getElementById('btn-save'); if(sb){sb.textContent='Saved ✓'; setTimeout(()=>{sb.textContent='Save draft';},1500);} }
+}
+
+// Update heading for current step
+function updateHeading() {
+  const labels = ['','Basics','Specs','Photos','Price & description','Review & publish'];
+  const hdg = main.querySelector('h1');
+  if (hdg) hdg.innerHTML = `Step ${currentStep} of 5 · <em style="font-family:var(--font-serif);font-weight:400;color:var(--brand-700);">${labels[currentStep]}</em>`;
+}
+
+// Kick off
+main.querySelector('.grid-3-1')?.remove();
+main.querySelector('.footer-cta')?.remove();
+updateHeading();
+renderStep1();
+})();
+</script>
+</body></html>

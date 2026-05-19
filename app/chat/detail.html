@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Chat · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css"><link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .chat-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; background: var(--paper-50); }
+  @media (min-width: 960px) { .chat-shell { grid-template-columns: 320px 1fr 320px; } }
+  .chat-sidebar, .chat-context { display: none; background: var(--paper-0); border-right: var(--border-hair); }
+  @media (min-width: 960px) { .chat-sidebar { display: block; } .chat-context { display: block; border-right: none; border-left: var(--border-hair); } }
+
+  .chat-thread-list { padding: 14px 8px; overflow-y: auto; }
+  .mini-thread { padding: 12px 14px; border-radius: 10px; cursor: pointer; }
+  .mini-thread + .mini-thread { margin-top: 4px; }
+  .mini-thread:hover { background: var(--paper-50); }
+  .mini-thread[aria-current="true"] { background: var(--brand-50); }
+  .mini-thread__row { display: flex; justify-content: space-between; gap: 8px; }
+  .mini-thread__name { font-weight: 700; font-size: var(--fs-sm); color: var(--ink-900); }
+  .mini-thread__time { font-size: 10px; color: var(--paper-500); font-family: var(--font-mono); }
+  .mini-thread__car { font-size: 11px; color: var(--paper-500); margin: 2px 0 4px; }
+  .mini-thread__msg { font-size: var(--fs-xs); color: var(--paper-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .chat-main { display: flex; flex-direction: column; min-height: 100vh; }
+  .chat-header {
+    padding: 14px 20px; border-bottom: var(--border-hair); background: var(--paper-0);
+    display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5;
+  }
+  .chat-header .avatar { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+  .chat-stream { flex: 1; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .day-divider { text-align: center; font-size: 11px; color: var(--paper-500); font-weight: 600; padding: 10px 0; }
+  .bubble { max-width: 70%; padding: 11px 14px; border-radius: 16px; font-size: var(--fs-sm); line-height: 1.5; box-shadow: var(--shadow-sm); }
+  .bubble--them { background: var(--paper-0); color: var(--ink-900); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .bubble--me { background: var(--ink-900); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+  .bubble__time { font-size: 10px; color: var(--paper-400); font-family: var(--font-mono); margin-top: 4px; }
+  .bubble--me .bubble__time { color: rgba(255,255,255,0.5); text-align: right; }
+
+  .offer-card {
+    align-self: flex-start; max-width: 300px; width: 100%;
+    background: linear-gradient(145deg, #1e3a8a, #1e1b4b); color: #fff;
+    border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 24px -8px rgba(30,58,138,0.45);
+  }
+  .offer-card .kicker { color: rgba(255,255,255,0.55); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .offer-card .price-big { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height:1.1; margin: 4px 0 2px; }
+  .offer-card .price-vs { font-size: 10px; color: #c7d2fe; margin-bottom: 8px; }
+  .offer-row { display:flex; justify-content: space-between; gap:8px; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+  .offer-row:last-child { border-bottom: none; }
+  .offer-row span:first-child { color: rgba(255,255,255,0.55); }
+  .offer-card__actions { display:flex; gap:6px; margin-top: 12px; flex-wrap: wrap; }
+  .offer-card .btn { flex: 1; min-width: 0; font-size: 11px; padding: 0 8px; height: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .offer-card .btn-accent { background: #fff; color: #1e1b4b; font-weight: 700; }
+  .offer-card .btn-accent:hover { background: #e0e7ff; }
+  .offer-card .btn-outline { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+  .offer-card .btn-pay { background: #22c55e; color: #fff; font-weight: 700; width: 100%; height: 36px; font-size: var(--fs-sm); margin-top: 12px; border-radius: 8px; }
+  .offer-card .btn-pay:hover { background: #16a34a; }
+
+  /* Payment modal */
+  .pay-modal { position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center; }
+  @media(min-width:600px){.pay-modal{align-items:center;}}
+  .pay-modal__overlay { position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px); }
+  .pay-modal__sheet {
+    position:relative;z-index:1;background:var(--paper-0);
+    border-radius:20px 20px 0 0;padding:28px 24px 44px;width:100%;max-width:440px;
+    box-shadow:0 -4px 40px rgba(0,0,0,0.18);
+  }
+  @media(min-width:600px){.pay-modal__sheet{border-radius:20px;padding:32px 28px 28px;}}
+  .pay-modal__header h2 { font-size:var(--fs-xl);font-weight:700;margin-bottom:3px; }
+  .pay-modal__header p { font-size:var(--fs-sm);color:var(--paper-500);margin-bottom:14px; }
+  .pay-modal__amount { font-family:var(--font-mono);font-size:30px;font-weight:700;color:var(--ink-900);margin-bottom:20px; }
+  .pay-form { display:flex;flex-direction:column;gap:10px; }
+  .pay-form .input { height:44px;font-size:var(--fs-sm); }
+  .pay-form__row { display:flex;gap:10px; }
+  .pay-form__row .input { flex:1; }
+
+  /* Deal celebration */
+  .deal-celebration { position:fixed;inset:0;z-index:200;background:linear-gradient(145deg,#0f172a,#1e3a8a,#312e81);display:flex;align-items:center;justify-content:center;overflow:hidden; }
+  .deal-cel-card { position:relative;z-index:2;text-align:center;color:#fff;padding:32px 24px;max-width:420px; }
+  .deal-cel-emoji { font-size:64px;margin-bottom:12px;display:block; }
+  .deal-cel-card h1 { font-size:clamp(28px,5vw,44px);font-weight:800;margin-bottom:8px; }
+  .deal-cel-card p { font-size:var(--fs-md);color:rgba(255,255,255,0.7);margin-bottom:20px; }
+  .deal-cel-summary { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px 20px;margin-bottom:24px; }
+  .deal-cel-summary__car { font-size:var(--fs-sm);color:rgba(255,255,255,0.65);margin-bottom:6px; }
+  .deal-cel-summary__price { font-family:var(--font-mono);font-size:28px;font-weight:700;color:#fff; }
+  .deal-cel-card .btn--primary { background:#fff;color:#1e1b4b;font-weight:700;width:100%;height:48px; }
+  @keyframes confetti-fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(105vh) rotate(900deg);opacity:0} }
+  .confetti-piece { position:absolute;border-radius:2px;animation:confetti-fall linear forwards; }
+
+  .chat-composer {
+    padding: 12px 16px; border-top: var(--border-hair); background: var(--paper-0);
+    position: sticky; bottom: 0; z-index: 5;
+  }
+  .composer-row { display: flex; gap: 8px; align-items: end; }
+  .composer-row textarea {
+    flex: 1; min-height: 44px; max-height: 120px; padding: 12px 14px;
+    border: 1px solid var(--paper-150); border-radius: 22px;
+    font: inherit; font-size: var(--fs-sm); resize: none; outline: none;
+    background: var(--paper-50);
+  }
+  .composer-row textarea:focus { border-color: var(--ink-900); background:#fff; }
+  .quick-replies { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .qr-pill { padding: 6px 12px; background: var(--paper-50); border: var(--border-hair); border-radius: 999px; font-size: var(--fs-xs); color: var(--paper-700); cursor: pointer; }
+  .offer-panel { display:none; margin-bottom:10px; padding:14px; background:var(--paper-50); border:var(--border-hair); border-radius:12px; }
+  .offer-panel.visible { display:block; }
+  .offer-panel__title { font-weight:700; font-size:var(--fs-sm); color:var(--ink-900); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+  .offer-panel__grid { display:flex; gap:8px; }
+  .offer-panel__grid .input { flex:1; height:40px; font-size:var(--fs-sm); }
+  .offer-panel__note { width:100%; height:36px; font-size:var(--fs-sm); margin-top:6px; }
+  .offer-panel__err { font-size:var(--fs-xs); color:#dc2626; margin-top:6px; display:none; }
+
+  .ctx-panel { padding: 18px; }
+  .ctx-img { width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; }
+  .ctx-stat { display:flex; justify-content: space-between; padding: 8px 0; font-size: var(--fs-sm); border-bottom: 1px dashed var(--paper-150); }
+  .ctx-stat span:first-child { color: var(--paper-500); }
+  .ctx-stat span:last-child { color: var(--ink-900); font-weight: 600; }
+
+  .mobile-back { display: inline-flex; }
+  @media (min-width: 960px) { .mobile-back { display: none; } }
+</style></head>
+<body>
+<div class="chat-shell">
+
+  <aside class="chat-sidebar">
+    <div style="padding: 18px 16px 10px;">
+      <a href="/app/index.html" style="display:flex; align-items:center; gap:8px; color:var(--paper-500); font-size:var(--fs-xs); margin-bottom: 16px;">← AutoMart</a>
+      <div class="row gap-2"><h2 style="font-size:var(--fs-xl);">Inbox</h2><span class="pill" style="margin-left:auto;">3 new</span></div>
+      <input class="input" type="search" placeholder="Search…" style="margin-top: 12px; height:38px; font-size:var(--fs-sm);">
+    </div>
+    <div class="chat-thread-list" id="sidebar-threads"></div>
+  </aside>
+
+  <section class="chat-main">
+    <header class="chat-header">
+      <a class="iconbtn mobile-back" href="/app/chat/index.html"><span data-icon="chev-l" data-size="18"></span></a>
+      <div class="avatar"></div>
+      <div style="flex:1; min-width:0;">
+        <div class="row gap-2"><strong></strong><span class="pill pill--ok" style="display:none;"><span data-icon="verified" data-size="11"></span>Verified</span></div>
+        <div style="font-size:11px; color:var(--ok-700); display:flex; align-items:center; gap:5px;"></div>
+      </div>
+      <div class="row gap-1"><button class="iconbtn"><span data-icon="phone" data-size="18"></span></button><button class="iconbtn"><span data-icon="more" data-size="18"></span></button></div>
+    </header>
+
+    <div class="chat-stream"></div>
+
+    <div class="chat-composer">
+      <div class="offer-panel" id="offer-panel">
+        <div class="offer-panel__title">
+          <span id="offer-panel-title">₨ Make an offer</span>
+          <button class="iconbtn" id="offer-cancel-btn" title="Close" style="font-size:18px;line-height:1;color:var(--paper-500);">✕</button>
+        </div>
+        <div class="offer-panel__grid">
+          <input type="number" id="offer-amount" class="input" placeholder="Amount in PKR (e.g. 4500000)" style="height:40px;font-size:var(--fs-sm);">
+        </div>
+        <input type="text" id="offer-note" class="input offer-panel__note" placeholder="Add a note (optional)">
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn--primary btn--sm" id="offer-submit-btn">Send offer</button>
+        </div>
+        <div class="offer-panel__err" id="offer-err"></div>
+      </div>
+      <div class="quick-replies">
+        <button class="qr-pill">Sounds good ✓</button>
+        <button class="qr-pill">Can we view tomorrow?</button>
+        <button class="qr-pill">Send registration photo</button>
+      </div>
+      <div class="composer-row">
+        <button class="iconbtn"><span data-icon="cam" data-size="18"></span></button>
+        <textarea id="chat-textarea" placeholder="Message…"></textarea>
+        <button class="btn btn--ghost" id="offer-toggle-btn" style="height:44px;padding:0 12px;gap:4px;font-size:var(--fs-xs);font-weight:600;" title="Make an offer"><span data-icon="rupee" data-size="14"></span> Offer</button>
+        <button class="btn btn--primary" id="send-msg-btn" style="height:44px;min-width:44px;padding:0 14px;"><span data-icon="send" data-size="16"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="chat-context">
+    <div class="ctx-panel">
+      <div class="ctx-img"><div class="imgslot"><div class="imgslot__car"></div><span class="imgslot__label">Civic Oriel · 2018</span></div></div>
+      <h3 style="font-size:var(--fs-md); margin-top: 12px;">2018 Honda Civic Oriel UG</h3>
+      <div class="row gap-2" style="margin-top:6px;">
+        <div style="font-family:var(--font-mono); font-weight:700; font-size:20px; color:var(--ink-900);">PKR 47.5L</div>
+        <span class="pill pill--ai" style="margin-left:auto;"><span data-icon="sparkle" data-size="11"></span>Fair price</span>
+      </div>
+      <a href="/app/listing/detail.html" class="btn btn--ghost btn--sm" style="width:100%; margin-top: 10px;">View full listing →</a>
+
+      <div style="margin-top:18px;">
+        <div class="ctx-stat"><span>Year</span><span>2018</span></div>
+        <div class="ctx-stat"><span>Mileage</span><span>62,300 km</span></div>
+        <div class="ctx-stat"><span>Trans</span><span>Auto · CVT</span></div>
+        <div class="ctx-stat"><span>Location</span><span>DHA, Lahore</span></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div class="grp-title" style="font-size: var(--fs-xs); font-weight: 700; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">Trust signals</div>
+        <div class="ctx-stat"><span>Seller</span><span style="color:var(--ok-700);">✓ Verified</span></div>
+        <div class="ctx-stat"><span>Reviews</span><span>4.9 ★ (23)</span></div>
+        <div class="ctx-stat"><span>Avg. response</span><span>42m</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Payment modal -->
+<div class="pay-modal" id="pay-modal" style="display:none;">
+  <div class="pay-modal__overlay" id="pay-modal-overlay"></div>
+  <div class="pay-modal__sheet">
+    <div class="pay-modal__header">
+      <h2>Complete Payment</h2>
+      <p id="pay-car-name">Finalise your deal</p>
+    </div>
+    <div class="pay-modal__amount" id="pay-amount-display">PKR —</div>
+    <div class="pay-form">
+      <input type="text" id="pay-cardholder" class="input" placeholder="Cardholder name" autocomplete="cc-name">
+      <input type="text" id="pay-card-number" class="input" placeholder="Card number  1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="cc-number">
+      <div class="pay-form__row">
+        <input type="text" id="pay-expiry" class="input" placeholder="MM / YY" maxlength="7" inputmode="numeric" autocomplete="cc-exp">
+        <input type="text" id="pay-cvv" class="input" placeholder="CVV" maxlength="3" inputmode="numeric" autocomplete="cc-csc">
+      </div>
+    </div>
+    <div id="pay-err" style="color:#dc2626;font-size:var(--fs-xs);display:none;margin-top:8px;"></div>
+    <button class="btn btn--primary" id="pay-submit-btn" style="width:100%;height:48px;margin-top:16px;font-size:var(--fs-md);">Pay <span id="pay-btn-amt"></span></button>
+    <button class="btn btn--ghost btn--sm" id="pay-cancel-btn" style="width:100%;margin-top:8px;">Cancel</button>
+    <p style="font-size:10px;color:var(--paper-400);text-align:center;margin-top:12px;">🔒 Simulated payment — no real charge</p>
+  </div>
+</div>
+
+<!-- Deal celebration -->
+<div class="deal-celebration" id="deal-celebration" style="display:none;">
+  <div id="confetti-wrap" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+  <div class="deal-cel-card">
+    <span class="deal-cel-emoji">🎉</span>
+    <h1>Deal Closed!</h1>
+    <p>Payment confirmed — congratulations!</p>
+    <div class="deal-cel-summary">
+      <div class="deal-cel-summary__car" id="cel-car-name"></div>
+      <div class="deal-cel-summary__price" id="cel-price"></div>
+    </div>
+    <a class="btn btn--primary" id="cel-view-btn" href="#">View deal summary →</a>
+  </div>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser, formatPKR, initUnreadBadge } from '/app/shared/supabase.js';
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+function formatL(minor) { const pkr=minor/100; return pkr>=10000000?(pkr/10000000).toFixed(2)+'Cr':((pkr/100000).toFixed(1)+'L'); }
+function timeStr(ts) { return new Date(ts).toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'}); }
+
+const params = new URLSearchParams(location.search);
+const convId = params.get('id');
+if (!convId) { window.location.replace('/app/chat/index.html'); return; }
+
+const user = await getCurrentUser();
+if (!user) { window.location.replace('/app/login.html'); return; }
+
+initUnreadBadge('.iconbtn__badge');
+
+// Load conversation + listing + messages
+const { data: conv } = await supabase
+  .from('conversations')
+  .select('*, listings(id, make, model, variant, year, mileage, city, price_minor, primary_photo_url, transmission, fuel_type, status, seller_id), buyer:profiles!conversations_buyer_id_fkey(id, display_name), seller:profiles!conversations_seller_id_fkey(id, display_name)')
+  .eq('id', convId)
+  .single();
+
+if (!conv) { document.querySelector('.chat-main').innerHTML = '<p style="padding:32px;color:var(--paper-500);">Conversation not found.</p>'; }
+else {
+  const listing = conv.listings;
+  const isBuyer = conv.buyer_id === user.id;
+  const other = isBuyer ? conv.seller : conv.buyer;
+  // Load seller verification separately
+  const { data: sellerSp } = await supabase.from('seller_profiles').select('verification_status').eq('user_id', conv.seller_id).maybeSingle();
+  const isVerified = sellerSp?.verification_status === 'approved';
+  const otherInitials = (other?.display_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+  // Update header
+  const headerAvatar = document.querySelector('.chat-header .avatar');
+  headerAvatar.textContent = otherInitials;
+  headerAvatar.title = other?.display_name||'';
+  document.querySelector('.chat-header strong').textContent = other?.display_name||'Unknown';
+  const verPill = document.querySelector('.chat-header .pill--ok');
+  if (verPill) verPill.style.display = isVerified ? '' : 'none';
+
+  // Update context panel
+  const ctx = document.querySelector('.ctx-panel');
+  if (listing) {
+    const priceL = formatL(listing.price_minor);
+    ctx.innerHTML = `
+      <div class="ctx-img">${listing.primary_photo_url ? `<img src="${listing.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div class="imgslot"><div class="imgslot__car"></div></div>'}</div>
+      <h3 style="font-size:var(--fs-md);margin-top:12px;">${listing.year} ${listing.make} ${listing.model}${listing.variant?' '+listing.variant:''}</h3>
+      <div class="row gap-2" style="margin-top:6px;"><div style="font-family:var(--font-mono);font-weight:700;font-size:20px;color:var(--ink-900);">PKR ${priceL}</div></div>
+      <a href="/app/listing/detail.html?id=${listing.id}" class="btn btn--ghost btn--sm" style="width:100%;margin-top:10px;">View full listing →</a>
+      <div style="margin-top:18px;">
+        <div class="ctx-stat"><span>Year</span><span>${listing.year}</span></div>
+        <div class="ctx-stat"><span>Mileage</span><span>${(listing.mileage||0).toLocaleString()} km</span></div>
+        <div class="ctx-stat"><span>Trans</span><span>${listing.transmission||'—'}</span></div>
+        <div class="ctx-stat"><span>Location</span><span>${listing.city||'—'}</span></div>
+      </div>`;
+    document.title = `${listing.year} ${listing.make} ${listing.model} · Chat · AutoMart`;
+  } else {
+    ctx.innerHTML = '<div style="padding:18px;color:var(--paper-500);font-size:var(--fs-sm);">Listing unavailable.</div>';
+  }
+
+  // Update sidebar mini-thread list
+  const { data: convList } = await supabase
+    .from('conversations')
+    .select('id, last_message_at, listings(make, model, year, price_minor), messages(id, body, sender_id, read_at, created_at)')
+    .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+    .order('last_message_at', { ascending: false })
+    .limit(10);
+
+  const threadList = document.getElementById('sidebar-threads');
+  const inboxPill = document.querySelector('.chat-sidebar .pill');
+  if (convList?.length) {
+    let sidebarUnread = 0;
+    threadList.innerHTML = convList.map(c => {
+      const msgs = (c.messages||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      const last = msgs[0];
+      const unread = (c.messages||[]).filter(m => m.sender_id !== user.id && !m.read_at).length;
+      if (unread) sidebarUnread++;
+      const l = c.listings;
+      const s = Math.floor((Date.now()-new Date(c.last_message_at||c.created_at))/1000);
+      const tAgo = s<60?s+'s':s<3600?Math.floor(s/60)+'m':Math.floor(s/3600)+'h';
+      return `<a class="mini-thread" href="/app/chat/detail.html?id=${c.id}" ${c.id===convId?'aria-current="true"':''}>
+        <div class="mini-thread__row"><div class="mini-thread__name">${l?.make||'Chat'} ${l?.model||''}</div><div class="mini-thread__time">${tAgo}</div></div>
+        <div class="mini-thread__car">${l?.year||''} · PKR ${l?formatL(l.price_minor):'—'}</div>
+        <div class="mini-thread__msg">${last?(last.sender_id===user.id?'You: ':'')+last.body:'New conversation'}</div>
+      </a>`;
+    }).join('');
+    if (inboxPill) {
+      if (sidebarUnread > 0) { inboxPill.textContent = sidebarUnread+' new'; inboxPill.style.display=''; }
+      else inboxPill.style.display = 'none';
+    }
+  } else if (inboxPill) {
+    inboxPill.style.display = 'none';
+  }
+
+  // Render messages
+  const stream = document.querySelector('.chat-stream');
+  const textarea = document.getElementById('chat-textarea');
+  const sendBtn = document.getElementById('send-msg-btn');
+  if (textarea) textarea.placeholder = `Message ${other?.display_name || '…'}`;
+
+  let _loadingMsgs = false;
+  async function loadMessages() {
+    if (_loadingMsgs) return;
+    _loadingMsgs = true;
+    try { await _doLoadMessages(); } finally { _loadingMsgs = false; }
+  }
+  async function _doLoadMessages() {
+    const { data: msgs } = await supabase
+      .from('messages')
+      .select('id, conversation_id, sender_id, body, type, read_at, offer_id, created_at')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+
+    if (!msgs?.length) { renderMessages([]); return; }
+
+    // Fetch offers separately to avoid FK join ambiguity
+    const offerIds = msgs.filter(m => m.type === 'offer' && m.offer_id).map(m => m.offer_id);
+    let offersMap = {};
+    if (offerIds.length) {
+      const { data: offs } = await supabase
+        .from('offers')
+        .select('id, amount_minor, status')
+        .in('id', offerIds);
+      if (offs) offs.forEach(o => { offersMap[o.id] = o; });
+    }
+
+    const enriched = msgs.map(m => ({ ...m, offers: m.offer_id ? (offersMap[m.offer_id]||null) : null }));
+    renderMessages(enriched);
+
+    // Mark unread as read
+    const unread = msgs.filter(m => m.sender_id !== user.id && !m.read_at).map(m => m.id);
+    if (unread.length) {
+      await supabase.from('messages').update({ read_at: new Date().toISOString() }).in('id', unread);
+    }
+  }
+
+  function renderMessages(msgs) {
+    stream.innerHTML = '';
+    if (!msgs.length) {
+      stream.innerHTML = `<div class="day-divider">Start the conversation</div>`;
+      return;
+    }
+    let lastDate = '';
+    msgs.forEach(m => {
+      const d = new Date(m.created_at).toLocaleDateString('en-PK',{weekday:'long',month:'short',day:'numeric'});
+      if (d !== lastDate) {
+        stream.insertAdjacentHTML('beforeend', `<div class="day-divider">${d}</div>`);
+        lastDate = d;
+      }
+      if (m.type === 'offer') {
+        stream.insertAdjacentHTML('beforeend', renderOfferCard(m.offers, m, m.sender_id === user.id));
+      } else {
+        const isMe = m.sender_id === user.id;
+        stream.insertAdjacentHTML('beforeend', `<div class="bubble ${isMe?'bubble--me':'bubble--them'}">${escHtml(m.body)}<div class="bubble__time">${timeStr(m.created_at)}${isMe?' · ✓✓':''}</div></div>`);
+      }
+    });
+    requestAnimationFrame(() => { stream.scrollTop = stream.scrollHeight; });
+    wireOfferButtons();
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(stream);
+  }
+
+  function renderOfferCard(offer, msg, isMine) {
+    const oid = offer?.id || msg.offer_id;
+    const amtMinor = offer?.amount_minor;
+    const status = offer?.status || 'pending';
+    const convClosed = conv?.status === 'closed';
+    const canRespond = !isMine && status === 'pending' && oid && !convClosed;
+    const canPay = isBuyer && status === 'accepted' && oid && !convClosed;
+    const waitingForPayment = !isBuyer && status === 'accepted' && oid && !convClosed;
+    const payDone = status === 'accepted' && convClosed;
+    const statusLabel = status === 'accepted' ? '✓ Accepted' : status === 'rejected' ? '✕ Declined' : status === 'countered' ? '↩ Countered' : '● Pending';
+    const amtDisplay = amtMinor ? formatPKR(amtMinor) : msg.body;
+    return `<div class="offer-card am-rise" data-offer-id="${oid}">
+      <span class="kicker">${isMine ? 'Your offer · sent' : 'Offer received'}</span>
+      <div class="price-big">${amtDisplay}</div>
+      ${listing ? `<div class="price-vs">vs. asking ${formatL(listing.price_minor)}L</div>` : ''}
+      <div class="offer-row"><span>Status</span><span>${statusLabel}</span></div>
+      <div class="offer-row"><span>Time</span><span>${timeStr(msg.created_at)}</span></div>
+      ${canRespond ? `<div class="offer-card__actions">
+        <button class="btn btn-accent" data-action="accept" data-oid="${oid}" data-amt="${amtMinor||0}">Accept ✓</button>
+        <button class="btn btn-outline" data-action="counter" data-oid="${oid}">Counter</button>
+        <button class="btn btn-outline" data-action="reject" data-oid="${oid}" style="background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);">Reject</button>
+      </div>` : ''}
+      ${canPay ? `<button class="btn btn-pay" data-action="pay" data-oid="${oid}" data-amt="${amtMinor||0}">💳 Pay now — complete the deal</button>` : ''}
+      ${waitingForPayment ? `<div style="margin-top:10px;padding:10px 12px;background:rgba(234,179,8,.12);border-radius:8px;color:#92400e;font-weight:600;font-size:var(--fs-sm);text-align:center;">⏳ Waiting for buyer to confirm payment</div>` : ''}
+      ${payDone ? `<div style="margin-top:10px;padding:10px 12px;background:rgba(34,197,94,.15);border-radius:8px;color:#15803d;font-weight:600;font-size:var(--fs-sm);text-align:center;">✓ Payment completed — deal closed</div>` : ''}
+    </div>`;
+  }
+
+  function wireOfferButtons() {
+    stream.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
+        const oid = btn.dataset.oid;
+        if (action === 'accept') {
+          const amtMinor = parseInt(btn.dataset.amt, 10) || 0;
+          btn.disabled = true;
+          await supabase.from('offers').update({ status: 'accepted' }).eq('id', oid);
+          await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, body: 'Offer accepted ✓', type: 'text' });
+          supabase.from('deals').insert({ conversation_id: convId, listing_id: conv.listing_id, buyer_id: conv.buyer_id, seller_id: conv.seller_id, final_price_minor: amtMinor, status: 'open' }); // fire-and-forget
+          // Use service-role edge function to bypass RLS on listings update
+          supabase.functions.invoke('mark-sold', { body: { listing_id: conv.listing_id } });
+          await loadMessages();
+        } else if (action === 'reject') {
+          btn.disabled = true;
+          await supabase.from('offers').update({ status: 'rejected' }).eq('id', oid);
+          await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, body: 'Offer declined.', type: 'text' });
+          await loadMessages();
+        } else if (action === 'counter') {
+          showOfferPanel('₨ Counter offer', oid);
+        } else if (action === 'pay') {
+          openPayModal(parseInt(btn.dataset.amt, 10) || 0, btn.dataset.oid);
+        }
+      });
+    });
+  }
+
+  // Send message
+  async function sendMessage() {
+    const body = textarea.value.trim();
+    if (!body) return;
+    textarea.value = '';
+    sendBtn.disabled = true;
+    await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, body, type: 'text' });
+    await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId);
+    sendBtn.disabled = false;
+    await loadMessages(); // show sent message immediately without waiting for realtime
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+  // Quick replies (all text-insert only now)
+  document.querySelectorAll('.qr-pill').forEach(pill => {
+    pill.addEventListener('click', () => { textarea.value = pill.textContent.trim(); textarea.focus(); });
+  });
+
+  // Offer panel
+  const offerPanel = document.getElementById('offer-panel');
+  const offerToggleBtn = document.getElementById('offer-toggle-btn');
+  const offerCancelBtn = document.getElementById('offer-cancel-btn');
+  const offerSubmitBtn = document.getElementById('offer-submit-btn');
+  const offerAmountEl = document.getElementById('offer-amount');
+  const offerNoteEl = document.getElementById('offer-note');
+  const offerErrEl = document.getElementById('offer-err');
+  let counterForOid = null;
+
+  function showOfferPanel(title, forOid) {
+    counterForOid = forOid || null;
+    document.getElementById('offer-panel-title').textContent = title || '₨ Make an offer';
+    offerAmountEl.value = '';
+    offerNoteEl.value = '';
+    offerErrEl.style.display = 'none';
+    offerPanel.classList.add('visible');
+    offerAmountEl.focus();
+  }
+
+  offerToggleBtn.addEventListener('click', () => {
+    if (offerPanel.classList.contains('visible')) {
+      offerPanel.classList.remove('visible');
+    } else {
+      showOfferPanel('₨ Make an offer', null);
+    }
+  });
+
+  offerCancelBtn.addEventListener('click', () => {
+    offerPanel.classList.remove('visible');
+    counterForOid = null;
+  });
+
+  offerSubmitBtn.addEventListener('click', async () => {
+    const amtRaw = (offerAmountEl.value || '').trim();
+    const note = (offerNoteEl.value || '').trim();
+    const amtNum = parseFloat(amtRaw.replace(/[,\s]/g, ''));
+    if (!amtNum || amtNum <= 0) {
+      offerErrEl.textContent = 'Please enter a valid amount in PKR.';
+      offerErrEl.style.display = 'block';
+      return;
+    }
+    const amtMinor = Math.round(amtNum * 100);
+    offerSubmitBtn.disabled = true;
+    offerErrEl.style.display = 'none';
+
+    const insertPayload = {
+      conversation_id: convId,
+      proposer_id: user.id,
+      amount_minor: amtMinor,
+      status: 'pending',
+    };
+    if (note) insertPayload.note = note;
+    if (counterForOid) {
+      insertPayload.parent_offer_id = counterForOid;
+      await supabase.from('offers').update({ status: 'countered' }).eq('id', counterForOid);
+    }
+
+    const { data: newOffer, error: offerErr } = await supabase
+      .from('offers')
+      .insert(insertPayload)
+      .select('id')
+      .single();
+
+    if (offerErr || !newOffer) {
+      offerErrEl.textContent = offerErr?.message || 'Failed to send offer. Please try again.';
+      offerErrEl.style.display = 'block';
+      offerSubmitBtn.disabled = false;
+      return;
+    }
+
+    const msgBody = counterForOid ? `Counter offer: ${formatPKR(amtMinor)}` : `Offer: ${formatPKR(amtMinor)}`;
+    await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, body: msgBody, type: 'offer', offer_id: newOffer.id });
+    await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId);
+
+    offerPanel.classList.remove('visible');
+    counterForOid = null;
+    offerSubmitBtn.disabled = false;
+    await loadMessages();
+  });
+
+  // ── Payment modal ────────────────────────────────────────────────────────
+  let _payAmtMinor = 0;
+
+  function openPayModal(amtMinor, oid) {
+    _payAmtMinor = amtMinor;
+    const carName = listing ? `${listing.year} ${listing.make} ${listing.model}${listing.variant ? ' ' + listing.variant : ''}` : 'the listing';
+    document.getElementById('pay-car-name').textContent = carName;
+    document.getElementById('pay-amount-display').textContent = amtMinor ? formatPKR(amtMinor) : '—';
+    document.getElementById('pay-btn-amt').textContent = amtMinor ? formatPKR(amtMinor) : '';
+    document.getElementById('pay-err').style.display = 'none';
+    document.getElementById('pay-cardholder').value = '';
+    document.getElementById('pay-card-number').value = '';
+    document.getElementById('pay-expiry').value = '';
+    document.getElementById('pay-cvv').value = '';
+    document.getElementById('pay-modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('pay-cardholder').focus(), 80);
+  }
+
+  document.getElementById('pay-modal-overlay').addEventListener('click', () => { document.getElementById('pay-modal').style.display = 'none'; });
+  document.getElementById('pay-cancel-btn').addEventListener('click', () => { document.getElementById('pay-modal').style.display = 'none'; });
+
+  document.getElementById('pay-card-number').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+  });
+  document.getElementById('pay-expiry').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 3) v = v.slice(0, 2) + ' / ' + v.slice(2);
+    e.target.value = v;
+  });
+
+  document.getElementById('pay-submit-btn').addEventListener('click', async () => {
+    const errEl = document.getElementById('pay-err');
+    const cardholder = document.getElementById('pay-cardholder').value.trim();
+    const cardNum = document.getElementById('pay-card-number').value.replace(/\s/g, '');
+    const expiry = document.getElementById('pay-expiry').value.trim();
+    const cvv = document.getElementById('pay-cvv').value.trim();
+
+    if (!cardholder) { errEl.textContent = 'Enter cardholder name.'; errEl.style.display = 'block'; return; }
+    if (cardNum.length < 16) { errEl.textContent = 'Enter a valid 16-digit card number.'; errEl.style.display = 'block'; return; }
+    if (!expiry) { errEl.textContent = 'Enter expiry date.'; errEl.style.display = 'block'; return; }
+    if (cvv.length < 3) { errEl.textContent = 'Enter a valid CVV.'; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('pay-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
+
+    await new Promise(r => setTimeout(r, 1800)); // simulate processing
+
+    // Notify both parties via chat
+    await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, body: '💳 Payment sent — deal complete! 🎉', type: 'text' });
+    await supabase.from('conversations').update({ last_message_at: new Date().toISOString(), status: 'closed' }).eq('id', convId);
+    supabase.from('deals').update({ status: 'closed', closed_at: new Date().toISOString() }).eq('conversation_id', convId);
+    conv.status = 'closed'; // update local state so Pay Now button disappears on next re-render
+
+    document.getElementById('pay-modal').style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Pay';
+
+    await loadMessages(); // re-render chat — Pay Now replaced with "Payment completed"
+    showCelebration();
+  });
+
+  function showCelebration() {
+    const cel = document.getElementById('deal-celebration');
+    document.getElementById('cel-car-name').textContent = listing ? `${listing.year} ${listing.make} ${listing.model}${listing.variant ? ' ' + listing.variant : ''}` : '';
+    document.getElementById('cel-price').textContent = _payAmtMinor ? formatPKR(_payAmtMinor) : '';
+    document.getElementById('cel-view-btn').href = `/app/chat/closed.html?id=${convId}`;
+    cel.style.display = 'flex';
+    launchConfetti();
+  }
+
+  function launchConfetti() {
+    const wrap = document.getElementById('confetti-wrap');
+    wrap.innerHTML = '';
+    const colors = ['#ffd700', '#ff6b6b', '#4ade80', '#60a5fa', '#f472b6', '#a78bfa', '#fb923c'];
+    for (let i = 0; i < 90; i++) {
+      const el = document.createElement('div');
+      const size = 6 + Math.random() * 8;
+      el.className = 'confetti-piece';
+      el.style.cssText = `width:${size}px;height:${size}px;background:${colors[i % colors.length]};left:${Math.random() * 100}%;top:-12px;border-radius:${Math.random() > 0.5 ? '50%' : '2px'};animation:confetti-fall ${2.5 + Math.random() * 2}s ease-in ${Math.random() * 1.2}s forwards;`;
+      wrap.appendChild(el);
+    }
+  }
+  // ── End payment ──────────────────────────────────────────────────────────
+
+  async function checkDeal() {
+    const { data: deal } = await supabase.from('deals').select('*').eq('conversation_id', convId).maybeSingle();
+    const existingBanner = document.getElementById('deal-banner');
+    if (existingBanner) existingBanner.remove();
+    if (!deal || deal.status === 'closed') {
+      if (deal?.status === 'closed') {
+        window.location.replace(`/app/chat/closed.html?id=${convId}`);
+      }
+      return;
+    }
+    const { data: convFresh } = await supabase.from('conversations').select('buyer_confirmed_at, seller_confirmed_at').eq('id', convId).single();
+    const iConfirmed = isBuyer ? convFresh?.buyer_confirmed_at : convFresh?.seller_confirmed_at;
+    const theyConfirmed = isBuyer ? convFresh?.seller_confirmed_at : convFresh?.buyer_confirmed_at;
+    const banner = document.createElement('div');
+    banner.id = 'deal-banner';
+    banner.style.cssText = 'padding:12px 16px;background:var(--ok-50);border-top:1px solid var(--ok-100);';
+    if (!iConfirmed) {
+      banner.innerHTML = `<div style="font-weight:600;font-size:var(--fs-sm);color:var(--ok-700);margin-bottom:8px;">Deal agreed — confirm handover when complete</div>
+        ${theyConfirmed ? '<div style="font-size:var(--fs-xs);color:var(--paper-500);margin-bottom:8px;">The other party has already confirmed.</div>' : ''}
+        <button class="btn btn--primary btn--sm" id="confirm-deal-btn">Confirm handover</button>`;
+      document.querySelector('.chat-composer').before(banner);
+      document.getElementById('confirm-deal-btn').addEventListener('click', async () => {
+        const field = isBuyer ? 'buyer_confirmed_at' : 'seller_confirmed_at';
+        await supabase.from('conversations').update({ [field]: new Date().toISOString() }).eq('id', convId);
+        const { data: cf2 } = await supabase.from('conversations').select('buyer_confirmed_at, seller_confirmed_at').eq('id', convId).single();
+        if (cf2?.buyer_confirmed_at && cf2?.seller_confirmed_at) {
+          await supabase.from('deals').update({ status: 'closed', closed_at: new Date().toISOString() }).eq('id', deal.id);
+          await supabase.from('listings').update({ status: 'sold' }).eq('id', deal.listing_id);
+          window.location.replace(`/app/chat/closed.html?id=${convId}`);
+        } else {
+          banner.innerHTML = '<div style="padding:4px 0;color:var(--ok-700);font-weight:600;">✓ Confirmed. Waiting for the other party to confirm.</div>';
+        }
+      });
+    } else if (!theyConfirmed) {
+      banner.innerHTML = '<div style="padding:4px 0;color:var(--ok-700);font-weight:600;">✓ You confirmed handover. Waiting for the other party.</div>';
+      document.querySelector('.chat-composer').before(banner);
+    }
+  }
+
+  // Realtime
+  const rtChannel = supabase.channel('chat-'+convId)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` }, () => loadMessages())
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'offers', filter: `conversation_id=eq.${convId}` }, () => loadMessages())
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'deals', filter: `conversation_id=eq.${convId}` }, () => checkDeal())
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: `id=eq.${convId}` }, (payload) => {
+      if (payload.new?.status === 'closed') { window.location.replace(`/app/chat/closed.html?id=${convId}`); }
+    })
+    .subscribe();
+  window.addEventListener('beforeunload', () => { supabase.removeChannel(rtChannel); });
+
+  await loadMessages();
+  await checkDeal();
+
+  if (window.location.hash === '#offer') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    showOfferPanel('₨ Make an offer', null);
+  }
+
+  if (conv.buyer_confirmed_at && conv.seller_confirmed_at && other?.id) {
+    const { data: existRev } = await supabase.from('reviews').select('id').eq('reviewer_id', user.id).eq('conversation_id', convId).maybeSingle();
+    if (!existRev) {
+      let selStar = 0;
+      const rv = document.createElement('div');
+      rv.style.cssText = 'padding:12px 16px;background:var(--ok-50);border-top:1px solid var(--ok-100);';
+      rv.innerHTML = `<div style="font-weight:600;font-size:var(--fs-sm);color:var(--ok-700);margin-bottom:8px;">Deal complete — leave a review for ${escHtml(other?.display_name||'the other party')}</div>
+        <div id="rv-stars" style="display:flex;gap:6px;cursor:pointer;font-size:26px;margin-bottom:8px;">${[1,2,3,4,5].map(i=>`<span data-s="${i}" style="color:var(--paper-300);">★</span>`).join('')}</div>
+        <textarea id="rv-comment" class="input" placeholder="Comment (optional)" style="resize:none;height:60px;font-size:var(--fs-sm);margin-bottom:8px;" rows="2"></textarea>
+        <button class="btn btn--primary btn--sm" id="rv-submit">Submit review</button>`;
+      document.querySelector('.chat-composer').before(rv);
+      rv.querySelectorAll('[data-s]').forEach(s => {
+        s.addEventListener('mouseenter', () => rv.querySelectorAll('[data-s]').forEach(ss => ss.style.color = +ss.dataset.s <= +s.dataset.s ? '#f59e0b' : 'var(--paper-300)'));
+        s.addEventListener('click', () => { selStar = +s.dataset.s; rv.querySelectorAll('[data-s]').forEach(ss => ss.style.color = +ss.dataset.s <= selStar ? '#f59e0b' : 'var(--paper-300)'); });
+      });
+      rv.querySelector('#rv-submit').addEventListener('click', async () => {
+        if (!selStar) return;
+        await supabase.from('reviews').insert({ reviewer_id: user.id, reviewee_id: other?.id, listing_id: listing?.id, conversation_id: convId, rating: selStar, comment: rv.querySelector('#rv-comment').value.trim() });
+        rv.innerHTML = '<div style="padding:4px 0;color:var(--ok-700);font-weight:600;">✓ Review submitted. Thank you!</div>';
+      });
+    }
+  }
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+})();
+</script>
+</body></html>

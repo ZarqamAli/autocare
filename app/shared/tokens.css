@@ -1,0 +1,117 @@
+/* AutoMart — Design Tokens */
+/* Premium light marketplace · #2563eb primary · Inter · Instrument Serif · Geist Mono */
+
+:root {
+  /* — Colors — */
+  --ink-950: #05070d;
+  --ink-900: #0a0e1a;
+  --ink-800: #101627;
+  --ink-700: #1a2238;
+  --ink-600: #2a3450;
+
+  --paper-0:   #ffffff;
+  --paper-50:  #fafbfc;   /* page bg */
+  --paper-75:  #f6f8fb;   /* subtle surface */
+  --paper-100: #f1f5f9;
+  --paper-150: #e6ecf2;   /* hairline */
+  --paper-200: #e2e8f0;
+  --paper-300: #cbd5e1;
+  --paper-400: #94a3b8;
+  --paper-500: #64748b;   /* muted text */
+  --paper-700: #334155;   /* secondary text */
+  --paper-900: #0f172a;   /* primary text */
+
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;   /* primary */
+  --brand-700: #1d4ed8;   /* hover */
+  --brand-800: #1e40af;
+  --brand-900: #1e3a8a;
+
+  --ok-50:  #ecfdf5;
+  --ok-500: #10b981;
+  --ok-600: #059669;
+  --ok-700: #047857;
+
+  --warn-50:  #fffbeb;
+  --warn-500: #f59e0b;
+  --warn-600: #d97706;
+
+  --bad-50:  #fef2f2;
+  --bad-500: #ef4444;
+  --bad-600: #dc2626;
+
+  --pak: #01411c;
+
+  /* — Type — */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --fs-xs:   11px;
+  --fs-sm:   13px;
+  --fs-base: 15px;
+  --fs-md:   16px;
+  --fs-lg:   18px;
+  --fs-xl:   22px;
+  --fs-2xl:  28px;
+  --fs-3xl:  36px;
+  --fs-4xl:  48px;
+  --fs-5xl:  64px;
+  --fs-6xl:  84px;
+
+  /* — Spacing — */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+
+  /* — Radius — */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-2xl: 24px;
+  --r-3xl: 32px;
+  --r-pill: 999px;
+
+  /* — Elevation (multi-layer) — */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.04);
+  --shadow-md: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -8px rgba(15,23,42,0.10);
+  --shadow-lg: 0 1px 2px rgba(15,23,42,0.04), 0 16px 40px -12px rgba(15,23,42,0.14);
+  --shadow-xl: 0 1px 2px rgba(15,23,42,0.04), 0 32px 64px -16px rgba(15,23,42,0.20);
+  --shadow-brand: 0 1px 2px rgba(37,99,235,0.10), 0 12px 32px -8px rgba(37,99,235,0.35);
+  --shadow-inset: inset 0 0 0 1px rgba(15,23,42,0.06);
+
+  /* — Borders — */
+  --border-hair: 1px solid rgba(15,23,42,0.06);
+  --border-soft: 1px solid rgba(15,23,42,0.10);
+  --border-mid:  1px solid rgba(15,23,42,0.14);
+
+  /* — Motion — */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+
+  /* — Layout — */
+  --container: 1240px;
+  --rail-w: 280px;
+  --header-h: 68px;
+}

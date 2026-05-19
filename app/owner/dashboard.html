@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Dashboard · AutoMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  /* ── Tab bar ── */
+  .dash-tabs {
+    display: flex; gap: 0; border-bottom: var(--border-hair);
+    background: var(--paper-0); position: sticky; top: 64px; z-index: 4;
+    padding: 0 24px;
+  }
+  .dash-tab {
+    padding: 14px 20px; font-size: var(--fs-sm); font-weight: 600;
+    color: var(--paper-500); border: none; background: transparent;
+    cursor: pointer; border-bottom: 2.5px solid transparent;
+    margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dash-tab[aria-selected="true"] { color: var(--ink-900); border-bottom-color: var(--ink-900); }
+  .dash-panel { display: none; }
+  .dash-panel.active { display: block; }
+
+  /* ── Garage tab ── */
+  .garage { max-width: 960px; margin: 0 auto; padding: 28px 20px 96px; }
+  .garage-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+  .garage-head h2 { font-size: clamp(22px, 2.5vw, 32px); letter-spacing: -0.025em; }
+  .garage-head h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .vgrid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .vcard { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl); overflow: hidden; transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); position: relative; }
+  .vcard:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .vcard__photo { height: 160px; background: linear-gradient(135deg, var(--paper-100), var(--paper-150)); position: relative; overflow: hidden; }
+  .vcard__photo img { width: 100%; height: 100%; object-fit: cover; }
+  .vcard__photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--paper-300); }
+  .vcard__stolen { position: absolute; top: 10px; left: 10px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+  .vcard__score { position: absolute; top: 10px; right: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 8px; }
+  .score--good { background: #dcfce7; color: #15803d; }
+  .score--ok   { background: #fef9c3; color: #92400e; }
+  .score--bad  { background: #fee2e2; color: #dc2626; }
+  .score--none { background: var(--paper-100); color: var(--paper-500); font-size: 10px; }
+  .vcard__body { padding: 16px; }
+  .vcard__title { font-size: var(--fs-lg); font-weight: 700; color: var(--ink-900); margin-bottom: 4px; }
+  .vcard__meta { font-size: var(--fs-xs); color: var(--paper-500); display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .vcard__reg { font-family: var(--font-mono); font-size: 11px; color: var(--paper-600); background: var(--paper-100); padding: 2px 7px; border-radius: 5px; }
+  .vcard__service { font-size: 11px; color: var(--paper-500); margin-bottom: 14px; }
+  .vcard__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── Listings tab ── */
+  .listings-wrap { max-width: 1280px; margin: 0 auto; padding: 28px 24px 96px; }
+  .listings-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .listings-head h2 { font-size: clamp(22px, 2.5vw, 32px); letter-spacing: -0.025em; }
+  .listings-head h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+  .panel { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); overflow: hidden; }
+  .panel__head { padding: 18px 22px; border-bottom: var(--border-hair); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .panel__title { font-weight: 700; color: var(--ink-900); font-size: var(--fs-md); }
+  .listings-table { width: 100%; }
+  .listings-table th, .listings-table td { padding: 14px 22px; text-align: left; border-bottom: 1px solid var(--paper-100); font-size: var(--fs-sm); }
+  .listings-table thead { background: var(--paper-50); }
+  .listings-table th { font-size: var(--fs-xs); color: var(--paper-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .listings-table tr:last-child td { border-bottom: none; }
+  .listings-table .car-cell { display: flex; align-items: center; gap: 12px; }
+  .listings-table .thumb { width: 64px; height: 48px; border-radius: 8px; flex-shrink: 0; overflow: hidden; background: var(--paper-100); }
+  .stats { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 24px; }
+  .stat { background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-lg); padding: 20px; }
+  .stat__label { font-size: var(--fs-xs); font-weight: 600; color: var(--paper-500); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat__value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--ink-900); margin-top: 8px; letter-spacing: -0.02em; }
+
+  /* ── Shared empty state ── */
+  .empty-state { text-align: center; padding: 72px 24px; background: var(--paper-0); border: 1.5px dashed var(--paper-200); border-radius: var(--r-2xl); }
+  .empty-state__icon { width: 72px; height: 72px; border-radius: 50%; background: var(--paper-100); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--paper-400); }
+  .empty-state h2 { font-size: var(--fs-2xl); color: var(--ink-900); margin-bottom: 10px; }
+  .empty-state p { color: var(--paper-500); font-size: var(--fs-sm); margin-bottom: 24px; max-width: 340px; margin-inline: auto; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/owner/dashboard.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoMart</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--ghost btn--sm hide-mobile" href="/app/emergency.html">Emergency</a>
+    <a class="btn btn--ghost btn--sm hide-mobile" href="/app/nearby.html">Find Workshop</a>
+    <a href="/app/chat/index.html" class="iconbtn" aria-label="Messages" style="text-decoration:none;">
+      <span data-icon="chat" data-size="18"></span>
+      <span class="iconbtn__badge chat-badge" style="display:none;"></span>
+    </a>
+    <a href="/app/seller/account.html" class="avatar" aria-label="Account">O</a>
+  </div>
+</header>
+
+<!-- Tab bar -->
+<div class="dash-tabs" role="tablist">
+  <button class="dash-tab" role="tab" aria-selected="true" data-tab="garage">
+    <span data-icon="car" data-size="16"></span> My Garage
+  </button>
+  <button class="dash-tab" role="tab" aria-selected="false" data-tab="listings">
+    <span data-icon="tag" data-size="16"></span> My Listings
+  </button>
+</div>
+
+<!-- ══ GARAGE PANEL ══ -->
+<div class="dash-panel active" id="panel-garage" role="tabpanel">
+  <div class="garage">
+    <div class="garage-head am-rise">
+      <h2>My <em>Garage</em></h2>
+      <a class="btn btn--primary" href="/app/owner/add-vehicle.html">
+        <span data-icon="plus" data-size="16"></span> Add Vehicle
+      </a>
+    </div>
+    <div id="garage-content">
+      <div style="text-align:center;padding:48px;color:var(--paper-400);">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LISTINGS PANEL ══ -->
+<div class="dash-panel" id="panel-listings" role="tabpanel">
+  <div class="listings-wrap">
+    <div class="listings-head am-rise">
+      <h2>My <em>Listings</em></h2>
+      <a class="btn btn--primary" href="/app/seller/new.html">
+        <span data-icon="plus" data-size="16"></span> Create Listing
+      </a>
+    </div>
+    <div class="stats" id="listing-stats">
+      <div class="stat"><div class="stat__label">Active listings</div><div class="stat__value" id="stat-active">—</div></div>
+      <div class="stat"><div class="stat__label">Total views</div><div class="stat__value" id="stat-views">—</div></div>
+      <div class="stat"><div class="stat__label">Sold</div><div class="stat__value" id="stat-sold">—</div></div>
+    </div>
+    <div class="panel am-rise">
+      <div class="panel__head">
+        <div class="panel__title" id="listings-panel-title">My listings</div>
+        <a href="/app/seller/new.html" class="btn btn--ghost btn--sm">+ New listing</a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="listings-table">
+          <thead><tr><th>Car</th><th>Status</th><th>Views</th><th>Price</th><th>Actions</th></tr></thead>
+          <tbody id="listings-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html" aria-current="page"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="/app/owner/add-vehicle.html"><span data-icon="car" data-size="20"></span>Add Car</a>
+  <a href="/app/owner/reminders.html" style="position:relative;"><span data-icon="bell" data-size="20"></span>Reminders<span id="rem-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;background:#dc2626;border-radius:50%;"></span></a>
+  <a href="/app/chat/index.html" style="position:relative;"><span data-icon="chat" data-size="20"></span>Messages<span class="tabbar__badge chat-badge" style="display:none;"></span></a>
+  <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.dash-tab');
+  const panels = document.querySelectorAll('.dash-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+  // Open listings tab if hash
+  if (location.hash === '#listings') {
+    tabs[1].click();
+  }
+</script>
+<script type="module">
+import { supabase, initUnreadBadge } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  const user = session.user;
+
+  const { data: profile } = await supabase.from('profiles')
+    .select('display_name, primary_role, is_admin').eq('id', user.id).maybeSingle();
+
+  if (!profile) {
+    // No profile row — send to signup so user can complete registration.
+    // Do NOT send back to login (login redirects owners here → infinite loop).
+    window.location.href = '/app/signup.html'; return;
+  }
+  if (profile.primary_role === 'mechanic' && !profile.is_admin) {
+    // Mechanic role: redirect to mechanic dashboard.
+    // Owners who also have a mechanic_profiles row keep primary_role = 'owner' so they are never caught here.
+    window.location.href = '/app/mechanic/dashboard.html'; return;
+  }
+  if (profile.primary_role !== 'owner' && profile.primary_role !== 'seller' && !profile.is_admin) {
+    // buyer or unknown role
+    window.location.href = '/app/buyer/index.html'; return;
+  }
+
+  document.body.style.visibility = '';
+
+  const initials = (profile?.display_name || 'O').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.querySelector('.avatar').textContent = initials;
+
+  await initUnreadBadge('.chat-badge');
+
+  supabase.channel('owner-inbox')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
+      () => initUnreadBadge('.chat-badge'))
+    .subscribe();
+
+  // ── Load garage ──
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('*, health_scores(*), service_logs(logged_at, service_types, odometer_at_service)')
+    .eq('owner_id', user.id)
+    .order('created_at', { ascending: false });
+
+  // ── Reminder badge: show dot if any vehicle is due/overdue ──
+  if (vehicles?.length) {
+    const needsAttention = vehicles.some(v => {
+      const interval = v.service_interval_km || 5000;
+      const logs = v.service_logs || [];
+      if (!logs.length) return false;
+      const latest = logs.reduce((a,b) => new Date(a.logged_at) > new Date(b.logged_at) ? a : b);
+      const lastOdo = latest.odometer_at_service;
+      const curOdo  = v.current_odometer;
+      if (lastOdo == null || curOdo == null) return false;
+      return curOdo >= (lastOdo + interval - 500);
+    });
+    if (needsAttention) document.getElementById('rem-badge').style.display = 'block';
+  }
+
+  const garageContent = document.getElementById('garage-content');
+
+  if (!vehicles?.length) {
+    garageContent.innerHTML = `
+      <div class="empty-state am-rise">
+        <div class="empty-state__icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/>
+            <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+            <path d="M7 7l2-4h6l2 4"/>
+          </svg>
+        </div>
+        <h2>Your garage is empty</h2>
+        <p>Add your first vehicle to get a QR code sticker and start tracking service history.</p>
+        <a class="btn btn--primary btn--lg" href="/app/owner/add-vehicle.html">
+          <span data-icon="plus" data-size="16"></span> Add your first car
+        </a>
+      </div>`;
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(garageContent);
+  } else {
+    function scoreClass(s) { if(s==null)return'score--none';if(s>=70)return'score--good';if(s>=40)return'score--ok';return'score--bad'; }
+    function scoreLabel(s) { return s==null?'No history yet':s+'/100'; }
+    function lastService(logs) {
+      if(!logs?.length) return 'No service records';
+      const latest = logs.reduce((a,b)=>new Date(a.logged_at)>new Date(b.logged_at)?a:b);
+      return 'Last service: '+new Date(latest.logged_at).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'});
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'vgrid';
+
+    function remBadgeHtml(v) {
+      const interval = v.service_interval_km || 5000;
+      const logs = v.service_logs || [];
+      if (!logs.length || v.current_odometer == null) return '';
+      const latest = logs.reduce((a,b) => new Date(a.logged_at) > new Date(b.logged_at) ? a : b);
+      const lastOdo = latest.odometer_at_service;
+      if (lastOdo == null) return '';
+      const nextDue = lastOdo + interval;
+      const cur = v.current_odometer;
+      if (cur >= nextDue)       return '<span style="position:absolute;top:8px;left:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;">OVERDUE</span>';
+      if (cur >= nextDue - 500) return '<span style="position:absolute;top:8px;left:8px;background:#f59e0b;color:#1a1100;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;">DUE SOON</span>';
+      return '';
+    }
+
+    for (const v of vehicles) {
+      const score = v.health_scores?.[0]?.score ?? null;
+      let photoUrl = null;
+      if (v.photo_url) {
+        if (v.photo_url.startsWith('http')) photoUrl = v.photo_url;
+        else { const {data} = await supabase.storage.from('vehicle-photos').createSignedUrl(v.photo_url, 3600); photoUrl = data?.signedUrl||null; }
+      }
+      const card = document.createElement('div');
+      card.className = 'vcard am-rise';
+      card.innerHTML = `
+        <div class="vcard__photo">
+          ${photoUrl ? `<img src="${photoUrl}" alt="${v.make} ${v.model}" loading="lazy">` : `<div class="vcard__photo-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/><path d="M7 7l2-4h6l2 4"/></svg></div>`}
+          ${v.is_stolen ? '<span class="vcard__stolen">⚠ Stolen</span>' : remBadgeHtml(v)}
+          <span class="vcard__score ${scoreClass(score)}">${scoreLabel(score)}</span>
+        </div>
+        <div class="vcard__body">
+          <div class="vcard__title">${v.year} ${v.make} ${v.model}${v.variant?' '+v.variant:''}</div>
+          <div class="vcard__meta">
+            <span>${v.color||'—'}</span>
+            ${v.registration_number?`<span class="vcard__reg">${v.registration_number}</span>`:''}
+          </div>
+          <div class="vcard__service">${lastService(v.service_logs)}</div>
+          <div class="vcard__actions">
+            ${v.qr_code_uuid?`<a class="btn btn--ghost btn--sm" href="/app/service-passport.html?vehicle=${v.qr_code_uuid}"><span data-icon="doc" data-size="14"></span> Passport</a>`:''}
+            ${!v.is_stolen
+              ?`<button class="btn btn--sm" style="color:#dc2626;border-color:#fecaca;" data-stolen="${v.id}">Report Stolen</button>`
+              :`<button class="btn btn--sm" style="color:#15803d;border-color:#86efac;" data-recover="${v.id}">Mark Recovered</button>`}
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    }
+
+    garageContent.innerHTML = '';
+    garageContent.appendChild(grid);
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(garageContent);
+
+    garageContent.querySelectorAll('[data-stolen]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Report this vehicle as stolen?')) return;
+        btn.disabled = true; btn.textContent = 'Reporting…';
+        await supabase.from('vehicles').update({ is_stolen: true, stolen_reported_at: new Date().toISOString() }).eq('id', btn.dataset.stolen);
+        location.reload();
+      });
+    });
+    garageContent.querySelectorAll('[data-recover]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Mark this vehicle as recovered?')) return;
+        btn.disabled = true; btn.textContent = 'Updating…';
+        await supabase.from('vehicles').update({ is_stolen: false, stolen_reported_at: null }).eq('id', btn.dataset.recover);
+        location.reload();
+      });
+    });
+  }
+
+  // ── Load listings ──
+  function formatL(minor) {
+    const pkr = minor/100;
+    if(pkr>=10000000) return 'PKR '+(pkr/10000000).toFixed(2)+'Cr';
+    return 'PKR '+(pkr/100000).toFixed(1)+'L';
+  }
+
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('id,make,model,variant,year,mileage,city,price_minor,status,views_count,primary_photo_url,created_at')
+    .eq('seller_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const allListings = listings || [];
+  const tbody = document.getElementById('listings-tbody');
+  const active = allListings.filter(l => l.status === 'active');
+  const sold   = allListings.filter(l => l.status === 'sold');
+
+  document.getElementById('stat-active').textContent = active.length;
+  document.getElementById('stat-views').textContent  = active.reduce((s,l)=>s+(l.views_count||0),0).toLocaleString();
+  document.getElementById('stat-sold').textContent   = sold.length;
+
+  function renderListings(ls) {
+    if (!ls.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--paper-400);padding:32px;">No listings yet. <a href="/app/seller/new.html" style="color:var(--brand-700);">Create your first listing →</a></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = ls.map(l => {
+      const statusHtml = l.status==='active'
+        ? '<span class="pill pill--ok"><span class="dot dot--ok"></span>Live</span>'
+        : l.status==='sold' ? '<span class="pill pill--ink">Sold</span>'
+        : '<span class="pill"><span class="dot"></span>Paused</span>';
+      const actions = l.status==='sold' ? '—' : `<div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <a href="/app/seller/new.html?id=${l.id}" class="btn btn--ghost btn--sm">Edit</a>
+        ${l.status==='active'?`<button class="btn btn--ghost btn--sm" data-act="pause" data-lid="${l.id}">Pause</button>`:''}
+        ${l.status==='paused'?`<button class="btn btn--ghost btn--sm" data-act="activate" data-lid="${l.id}">Activate</button>`:''}
+        <button class="btn btn--sm" style="color:var(--bad-500);background:var(--bad-50);" data-act="delete" data-lid="${l.id}">Del</button>
+      </div>`;
+      return `<tr>
+        <td><div class="car-cell">
+          <div class="thumb">${l.primary_photo_url?`<img src="${l.primary_photo_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`:''}</div>
+          <div><div style="font-weight:600;color:var(--ink-900);">${l.year} ${l.make} ${l.model}${l.variant?' '+l.variant:''}</div><div style="color:var(--paper-500);font-size:var(--fs-xs);">${(l.mileage||0).toLocaleString()} km · ${l.city||''}</div></div>
+        </div></td>
+        <td>${statusHtml}</td>
+        <td><strong style="font-family:var(--font-mono);">${(l.views_count||0).toLocaleString()}</strong></td>
+        <td style="font-family:var(--font-mono);font-weight:600;">${formatL(l.price_minor)}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-act]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const { act, lid } = btn.dataset;
+        if (act === 'pause') {
+          await supabase.from('listings').update({status:'paused'}).eq('id',lid);
+        } else if (act === 'activate') {
+          await supabase.from('listings').update({status:'active'}).eq('id',lid);
+        } else if (act === 'delete') {
+          if (!confirm('Delete this listing permanently?')) return;
+          await supabase.from('listing_photos').delete().eq('listing_id',lid);
+          await supabase.from('listings').delete().eq('id',lid);
+        }
+        location.reload();
+      });
+    });
+  }
+
+  renderListings(allListings);
+})();
+</script>
+</body>
+</html>

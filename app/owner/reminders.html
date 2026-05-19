@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Service Reminders · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/inapp.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .rem { max-width: 800px; margin: 0 auto; padding: 28px 20px 96px; }
+  .rem-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+  .rem-head h1 { font-size: clamp(24px,3vw,34px); letter-spacing: -0.025em; }
+  .rem-head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand-700); }
+
+  .rem-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-xl);
+    padding: 22px 24px; margin-bottom: 16px;
+    display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start;
+  }
+  .rem-card__name { font-size: var(--fs-lg); font-weight: 700; color: var(--ink-900); margin-bottom: 12px; }
+  .rem-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 14px; }
+  .rem-meta__item { }
+  .rem-meta__lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--paper-400); margin-bottom: 3px; }
+  .rem-meta__val { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 600; color: var(--ink-900); }
+  .rem-meta__val--muted { color: var(--paper-500); font-weight: 500; font-family: inherit; }
+
+  .rem-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: var(--r-pill);
+    font-size: var(--fs-xs); font-weight: 700; white-space: nowrap;
+  }
+  .rem-badge--ok       { background: #dcfce7; color: #15803d; }
+  .rem-badge--soon     { background: #fef3c7; color: #92400e; }
+  .rem-badge--overdue  { background: #fee2e2; color: #dc2626; }
+  .rem-badge--unknown  { background: var(--paper-100); color: var(--paper-500); }
+
+  .rem-interval { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .rem-interval label { font-size: var(--fs-xs); color: var(--paper-500); font-weight: 600; white-space: nowrap; }
+  .rem-interval select { font-size: var(--fs-xs); padding: 4px 8px; border: var(--border-hair); border-radius: 8px; background: var(--paper-50); color: var(--ink-900); font-family: var(--font-mono); cursor: pointer; }
+  .rem-interval .saved-tick { font-size: 11px; color: var(--ok-700); font-weight: 600; display: none; }
+
+  .empty-state { text-align: center; padding: 72px 24px; }
+  .empty-state h2 { color: var(--ink-900); margin-bottom: 10px; }
+  .empty-state p { color: var(--paper-500); font-size: var(--fs-sm); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="app-shell with-tabbar">
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="/app/owner/dashboard.html"><span class="brand__mark">A</span><span class="hide-mobile">AutoCare</span></a>
+    <div class="appbar__spacer"></div>
+    <a class="btn btn--ghost btn--sm" href="/app/owner/dashboard.html">← Dashboard</a>
+  </div>
+</header>
+
+<main class="rem">
+  <div class="rem-head am-rise">
+    <h1>Service <em>Reminders</em></h1>
+  </div>
+  <div id="rem-content">
+    <div style="text-align:center;padding:48px;color:var(--paper-400);">Loading…</div>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <a href="/app/owner/dashboard.html"><span data-icon="home" data-size="20"></span>Home</a>
+  <a href="/app/owner/add-vehicle.html"><span data-icon="car" data-size="20"></span>Add Car</a>
+  <a href="/app/owner/reminders.html" aria-current="page"><span data-icon="bell" data-size="20"></span>Reminders</a>
+  <a href="/app/chat/index.html"><span data-icon="chat" data-size="20"></span>Chats</a>
+  <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
+</nav>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase, getCurrentUser } from '/app/shared/supabase.js';
+
+(async () => {
+  document.body.style.visibility = 'hidden';
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  document.body.style.visibility = '';
+
+  const user = await getCurrentUser();
+  if (!user) { window.location.href = '/app/login.html'; return; }
+
+  const { data: profile } = await supabase.from('profiles')
+    .select('primary_role, is_admin').eq('id', user.id).maybeSingle();
+  if (profile?.primary_role !== 'owner' && profile?.primary_role !== 'seller' && !profile?.is_admin) {
+    window.location.href = '/app/buyer/index.html'; return;
+  }
+
+  // Load vehicles with latest service log
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('id, make, model, variant, year, current_odometer, service_interval_km')
+    .eq('owner_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const content = document.getElementById('rem-content');
+
+  if (!vehicles?.length) {
+    content.innerHTML = `<div class="empty-state am-rise">
+      <h2>No vehicles registered</h2>
+      <p>Add your first vehicle to start tracking service reminders.</p>
+      <a class="btn btn--primary btn--lg" href="/app/owner/add-vehicle.html">
+        <span data-icon="plus" data-size="16"></span> Add Vehicle
+      </a>
+    </div>`;
+    if (typeof AMIcon !== 'undefined') AMIcon.mount(content);
+    return;
+  }
+
+  // For each vehicle, get latest service log
+  const vehicleData = await Promise.all(vehicles.map(async v => {
+    const { data: logs } = await supabase
+      .from('service_logs')
+      .select('logged_at, odometer_at_service')
+      .eq('vehicle_id', v.id)
+      .order('logged_at', { ascending: false })
+      .limit(1);
+    return { ...v, latestLog: logs?.[0] || null };
+  }));
+
+  function statusInfo(currentOdo, nextDue) {
+    if (currentOdo == null || nextDue == null) return { cls: 'rem-badge--unknown', label: 'Unknown', dot: '—' };
+    if (currentOdo >= nextDue)             return { cls: 'rem-badge--overdue', label: 'Overdue', dot: '🔴' };
+    if (currentOdo >= nextDue - 500)       return { cls: 'rem-badge--soon',    label: 'Due soon', dot: '🟡' };
+    return                                        { cls: 'rem-badge--ok',      label: 'OK',       dot: '🟢' };
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function fmtOdo(km) { return km != null ? km.toLocaleString() + ' km' : '—'; }
+
+  const INTERVALS = [3000, 5000, 8000, 10000];
+
+  content.innerHTML = '';
+
+  for (const v of vehicleData) {
+    const interval   = v.service_interval_km || 5000;
+    const lastOdo    = v.latestLog?.odometer_at_service ?? null;
+    const nextDue    = lastOdo != null ? lastOdo + interval : null;
+    const currentOdo = v.current_odometer ?? null;
+    const status     = statusInfo(currentOdo, nextDue);
+
+    const card = document.createElement('div');
+    card.className = 'rem-card am-rise';
+    card.innerHTML = `
+      <div>
+        <div class="rem-card__name">${v.year} ${v.make} ${v.model}${v.variant ? ' ' + v.variant : ''}</div>
+        <div class="rem-meta">
+          <div class="rem-meta__item">
+            <div class="rem-meta__lbl">Last service</div>
+            <div class="rem-meta__val ${v.latestLog ? '' : 'rem-meta__val--muted'}">${fmtDate(v.latestLog?.logged_at)}</div>
+          </div>
+          <div class="rem-meta__item">
+            <div class="rem-meta__lbl">Last odometer</div>
+            <div class="rem-meta__val ${lastOdo != null ? '' : 'rem-meta__val--muted'}">${fmtOdo(lastOdo)}</div>
+          </div>
+          <div class="rem-meta__item">
+            <div class="rem-meta__lbl">Current odometer</div>
+            <div class="rem-meta__val ${currentOdo != null ? '' : 'rem-meta__val--muted'}">${fmtOdo(currentOdo)}</div>
+          </div>
+          <div class="rem-meta__item">
+            <div class="rem-meta__lbl">Next due at</div>
+            <div class="rem-meta__val ${nextDue != null ? '' : 'rem-meta__val--muted'}">${nextDue != null ? nextDue.toLocaleString() + ' km' : '—'}</div>
+          </div>
+        </div>
+        <div class="rem-interval">
+          <label for="interval-${v.id}">Service every</label>
+          <select id="interval-${v.id}" data-vid="${v.id}">
+            ${INTERVALS.map(i => `<option value="${i}"${i === interval ? ' selected' : ''}>${i.toLocaleString()} km</option>`).join('')}
+          </select>
+          <span class="saved-tick" id="tick-${v.id}">✓ Saved</span>
+        </div>
+      </div>
+      <div>
+        <span class="rem-badge ${status.cls}">${status.dot} ${status.label}</span>
+      </div>`;
+
+    content.appendChild(card);
+  }
+
+  if (typeof AMIcon !== 'undefined') AMIcon.mount(content);
+
+  // Interval change handlers
+  content.querySelectorAll('select[data-vid]').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const vid = sel.dataset.vid;
+      const val = parseInt(sel.value, 10);
+      await supabase.from('vehicles').update({ service_interval_km: val }).eq('id', vid);
+      const tick = document.getElementById('tick-' + vid);
+      tick.style.display = 'inline';
+      setTimeout(() => { tick.style.display = 'none'; }, 2000);
+      // Recalc badge for this card
+      const v = vehicleData.find(x => x.id === vid);
+      if (v) {
+        v.service_interval_km = val;
+        const lastOdo  = v.latestLog?.odometer_at_service ?? null;
+        const nextDue  = lastOdo != null ? lastOdo + val : null;
+        const curOdo   = v.current_odometer ?? null;
+        const st       = statusInfo(curOdo, nextDue);
+        const badge    = sel.closest('.rem-card').querySelector('.rem-badge');
+        badge.className = `rem-badge ${st.cls}`;
+        badge.textContent = st.dot + ' ' + st.label;
+        const nextEl = sel.closest('.rem-card').querySelectorAll('.rem-meta__val')[3];
+        if (nextEl) nextEl.textContent = nextDue != null ? nextDue.toLocaleString() + ' km' : '—';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Application under review · AutoCare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/shared/app.css">
+<link rel="stylesheet" href="/app/shared/mobile.css">
+<style>
+  .pending-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--paper-50); padding: 24px;
+  }
+  .pending-card {
+    background: var(--paper-0); border: var(--border-hair); border-radius: var(--r-2xl);
+    padding: 48px 40px; max-width: 500px; width: 100%; text-align: center;
+  }
+  .pending-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 2px solid #bfdbfe;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+  }
+  .pending-card h1 {
+    font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.02em; line-height: 1.2;
+    color: var(--ink-900); margin-bottom: 12px;
+  }
+  .pending-card h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #1d4ed8; }
+  .pending-card p { color: var(--paper-600); font-size: var(--fs-sm); line-height: 1.7; margin-bottom: 0; }
+  .pending-steps { text-align: left; margin: 28px 0; display: flex; flex-direction: column; gap: 12px; }
+  .pstep { display: flex; align-items: flex-start; gap: 12px; }
+  .pstep__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-400); margin-top: 6px; flex-shrink: 0; }
+  .pstep__dot--done { background: var(--ok-500); }
+  .pstep__text { font-size: var(--fs-sm); color: var(--paper-700); line-height: 1.5; }
+  .pstep__text strong { color: var(--ink-900); }
+</style>
+</head>
+<body>
+<div class="pending-wrap">
+  <div class="pending-card am-rise">
+    <div class="pending-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3 3"/>
+      </svg>
+    </div>
+
+    <div class="kicker" style="color:#2563eb; margin-bottom:10px;">Application received</div>
+    <h1>Your application is <em>under review</em>.</h1>
+    <p>Our team is verifying your workshop and CNIC documents. You'll be notified once your account is approved.</p>
+
+    <div class="pending-steps">
+      <div class="pstep">
+        <div class="pstep__dot pstep__dot--done"></div>
+        <div class="pstep__text"><strong>Application submitted</strong><br>Documents and workshop details received.</div>
+      </div>
+      <div class="pstep">
+        <div class="pstep__dot"></div>
+        <div class="pstep__text"><strong>Identity verification</strong><br>CNIC and selfie match check — usually within 24 hours.</div>
+      </div>
+      <div class="pstep">
+        <div class="pstep__dot"></div>
+        <div class="pstep__text"><strong>Workshop confirmation</strong><br>Brief check on workshop details.</div>
+      </div>
+      <div class="pstep">
+        <div class="pstep__dot"></div>
+        <div class="pstep__text"><strong>Account activated</strong><br>You'll receive an SMS/email to start scanning vehicles.</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 16px; background:var(--paper-50); border:var(--border-hair); border-radius:12px; font-size:var(--fs-xs); color:var(--paper-500); line-height:1.6; margin-bottom:28px;">
+      No action required from you. If we need more information, we'll contact you via the phone number you provided.
+    </div>
+
+    <div class="col" style="gap:10px;">
+      <a class="btn btn--ghost btn--block" href="/app/login.html">Sign in to another account</a>
+    </div>
+  </div>
+</div>
+
+<script src="/app/shared/icons.js"></script>
+<script type="module">
+import { supabase } from '/app/shared/supabase.js';
+
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+
+  // If approved, redirect to dashboard (future)
+  const { data } = await supabase
+    .from('mechanic_profiles')
+    .select('status')
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (data?.status === 'approved') {
+    window.location.href = '/app/mechanic/dashboard.html';
+  }
+})();
+</script>
+</body>
+</html>
