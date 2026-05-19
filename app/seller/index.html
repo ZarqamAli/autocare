@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -204,7 +204,7 @@
   <a href="/app/chat/index.html"><span data-icon="chat" data-size="20"></span>Chats</a>
   <a href="/app/seller/account.html"><span data-icon="user" data-size="20"></span>Account</a>
 </nav>
-<script src="/app/shared/icons.js" defer></script>
+<script src="/app/shared/icons.js"></script>
 <script type="module">
 import { supabase, getCurrentUser, getUserProfile, formatPKR, initUnreadBadge } from '/app/shared/supabase.js';
 (async () => {
@@ -312,5 +312,4 @@ supabase.channel('seller-dashboard')
   .subscribe();
 })();
 </script>
-<script src="/app/shared/perf.js" defer></script>
 </body></html>

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -239,7 +239,7 @@
   </div>
 </div>
 
-<script src="/app/shared/icons.js" defer></script>
+<script src="/app/shared/icons.js"></script>
 <script type="module">
 import { supabase, getCurrentUser, formatPKR, initUnreadBadge } from '/app/shared/supabase.js';
 (async () => {
@@ -735,5 +735,4 @@ else {
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 })();
 </script>
-<script src="/app/shared/perf.js" defer></script>
 </body></html>

@@ -1,8 +1,8 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Scan QR Â· AutoCare</title>
+<title>Scan QR · AutoCare</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app/shared/app.css">
 <link rel="stylesheet" href="/app/shared/mobile.css">
@@ -102,7 +102,7 @@
 <div class="scan-shell">
   <div class="scan-bar">
     <a class="brand" href="/app/mechanic/dashboard.html"><span class="brand__mark">A</span><span>AutoCare</span></a>
-    <a class="btn btn--ghost btn--sm" href="/app/mechanic/dashboard.html" style="color:#fff;border-color:rgba(255,255,255,0.2);">â† Back</a>
+    <a class="btn btn--ghost btn--sm" href="/app/mechanic/dashboard.html" style="color:#fff;border-color:rgba(255,255,255,0.2);">← Back</a>
   </div>
 
   <div id="reader"></div>
@@ -117,10 +117,10 @@
   <!-- Mode toggle -->
   <div class="scan-mode-bar">
     <button class="scan-mode-btn active" id="btn-mode-camera">
-      ðŸ“· Camera scan
+      📷 Camera scan
     </button>
     <button class="scan-mode-btn" id="btn-mode-upload">
-      ðŸ–¼ Upload QR image
+      🖼 Upload QR image
     </button>
   </div>
 </div>
@@ -128,7 +128,7 @@
 <!-- Upload mode -->
 <div class="upload-drop" id="upload-drop">
   <div class="upload-box" id="upload-box">
-    <div class="upload-box__icon">ðŸ“</div>
+    <div class="upload-box__icon">📁</div>
     <div class="upload-box__title">Select QR image</div>
     <div class="upload-box__sub">Tap to choose a photo of the AutoCare QR sticker</div>
   </div>
@@ -138,16 +138,16 @@
 
 <!-- Stolen vehicle screen -->
 <div class="stolen-screen" id="stolen-screen">
-  <div class="stolen-screen__icon">âš ï¸</div>
+  <div class="stolen-screen__icon">⚠️</div>
   <h1>STOLEN VEHICLE</h1>
   <p id="stolen-desc">This vehicle has been reported stolen. Do not service or purchase it.</p>
-  <button class="btn-alert" id="btn-send-location">ðŸ“ Send My Location to Owner</button>
-  <button class="btn-alert-sec" id="btn-dismiss-stolen" onclick="window.location.href='/app/mechanic/dashboard.html'">â† Back to Dashboard</button>
+  <button class="btn-alert" id="btn-send-location">📍 Send My Location to Owner</button>
+  <button class="btn-alert-sec" id="btn-dismiss-stolen" onclick="window.location.href='/app/mechanic/dashboard.html'">← Back to Dashboard</button>
   <div class="stolen-owner" id="stolen-owner-info" style="display:none;">
     <div class="stolen-owner__lbl">Owner contact</div>
-    <div class="stolen-owner__val" id="stolen-owner-phone">â€”</div>
+    <div class="stolen-owner__val" id="stolen-owner-phone">—</div>
   </div>
-  <div id="location-sent" style="display:none;margin-top:16px;color:rgba(255,255,255,0.9);font-size:var(--fs-sm);">âœ“ Location sent to vehicle owner</div>
+  <div id="location-sent" style="display:none;margin-top:16px;color:rgba(255,255,255,0.9);font-size:var(--fs-sm);">✓ Location sent to vehicle owner</div>
 </div>
 
 <!-- Vehicle not found screen -->
@@ -159,12 +159,12 @@
   <p style="color:var(--paper-500);font-size:var(--fs-sm);line-height:1.6;max-width:340px;margin-bottom:28px;">This QR code is not linked to any vehicle in AutoCare. Ask the owner to register their vehicle at autocare.pk first.</p>
   <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;">
     <button class="btn btn--primary" onclick="location.reload()">Scan another QR</button>
-    <a class="btn btn--ghost" href="/app/mechanic/dashboard.html">â† Back to Dashboard</a>
+    <a class="btn btn--ghost" href="/app/mechanic/dashboard.html">← Back to Dashboard</a>
   </div>
 </div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
-<script src="/app/shared/icons.js" defer></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="/app/shared/icons.js"></script>
 <script type="module">
 import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
@@ -215,7 +215,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
     if (vehicle.is_stolen) {
       const { data: owner } = await supabase.from('profiles').select('display_name, phone').eq('id', vehicle.owner_id).maybeSingle();
-      document.getElementById('stolen-desc').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model} â€” reported stolen. Do not service or purchase.`;
+      document.getElementById('stolen-desc').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model} — reported stolen. Do not service or purchase.`;
       if (owner?.phone) {
         document.getElementById('stolen-owner-info').style.display = 'block';
         document.getElementById('stolen-owner-phone').textContent = owner.phone;
@@ -224,7 +224,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
       document.getElementById('btn-send-location').addEventListener('click', async () => {
         const btn = document.getElementById('btn-send-location');
-        btn.disabled = true; btn.textContent = 'Getting locationâ€¦';
+        btn.disabled = true; btn.textContent = 'Getting location…';
         navigator.geolocation.getCurrentPosition(async pos => {
           await supabase.from('stolen_alerts').insert({ vehicle_id: vehicle.id, mechanic_id: mp.id, lat: pos.coords.latitude, lng: pos.coords.longitude, workshop_name: mp.workshop_name });
           btn.style.display = 'none';
@@ -241,7 +241,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
     window.location.href = `/app/mechanic/log-service.html?vehicle=${vehicle.id}`;
   }
 
-  // â”€â”€ Camera mode â”€â”€
+  // ── Camera mode ──
   const scanner = new Html5Qrcode('reader');
   let cameraRunning = false;
 
@@ -252,7 +252,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: window.innerHeight / window.innerWidth },
       async (decodedText) => {
-        showStatus('QR detected, looking up vehicleâ€¦');
+        showStatus('QR detected, looking up vehicle…');
         await scanner.stop().catch(() => {});
         cameraRunning = false;
         await handleDecodedQR(decodedText);
@@ -269,7 +269,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
 
   startCamera();
 
-  // â”€â”€ Upload mode â”€â”€
+  // ── Upload mode ──
   const fileInput = document.getElementById('upload-file-input');
   const uploadBox  = document.getElementById('upload-box');
   const uploadDrop = document.getElementById('upload-drop');
@@ -282,11 +282,11 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
     const file = fileInput.files[0];
     if (!file) return;
     scanned = false;
-    showStatus('Reading QR from imageâ€¦', 'upload-status-msg');
+    showStatus('Reading QR from image…', 'upload-status-msg');
     try {
       const scannerFile = new Html5Qrcode('reader');
       const result = await scannerFile.scanFile(file, true);
-      showStatus('QR found, looking up vehicleâ€¦', 'upload-status-msg');
+      showStatus('QR found, looking up vehicle…', 'upload-status-msg');
       await handleDecodedQR(result);
     } catch (err) {
       scanned = false;
@@ -295,7 +295,7 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
     fileInput.value = '';
   });
 
-  // â”€â”€ Mode toggle â”€â”€
+  // ── Mode toggle ──
   const btnCamera = document.getElementById('btn-mode-camera');
   const btnUpload = document.getElementById('btn-mode-upload');
 
@@ -322,6 +322,5 @@ import { supabase, getCurrentUser } from '/app/shared/supabase.js';
   });
 })();
 </script>
-<script src="/app/shared/perf.js" defer></script>
 </body>
 </html>
