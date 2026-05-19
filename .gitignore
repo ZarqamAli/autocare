@@ -7,3 +7,6 @@ node_modules/
 supabase/.temp/
 .claude/
 .vscode/
+marketing/media/*.mp4
+marketing/*.mp4
+marketing/uploads/
